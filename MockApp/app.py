@@ -5,7 +5,7 @@ from aiocsv import AsyncDictReader
 import json
 
 csv_path = "./data/line1.csv"
-uri = "http://localhost:5678"
+uri = "ws://localhost:5678"
 sio = socketio.AsyncClient()
 queue = asyncio.Queue()
 
@@ -35,6 +35,8 @@ async def main():
                 await queue.put(row)
     except FileNotFoundError as err:
         print(f"File '{err.filename}' does not exist.")
+
+    await sio.emit("recordingStatusMessage", "start")
 
     while True:
         try:

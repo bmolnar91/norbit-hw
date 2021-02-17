@@ -5,18 +5,19 @@ ALTER TABLE IF EXISTS ONLY public.position DROP CONSTRAINT IF EXISTS pk_position
 
 DROP TABLE IF EXISTS public.track;
 CREATE TABLE track (
-    id serial NOT NULL,
+    id UUID NOT NULL,
     start_time timestamp without time zone,
     end_time timestamp without time zone
 );
 
 DROP TABLE IF EXISTS public.position;
 CREATE TABLE position (
-    id serial NOT NULL,
-    lat double precision,
-    lon double precision,
+    id bigserial NOT NULL,
+    latitude double precision,
+    longitude double precision,
     heading double precision,
-    track_id integer NOT NULL
+    actual_time timestamp without time zone,
+    track_id UUID NOT NULL
 );
 
 
@@ -28,3 +29,37 @@ ALTER TABLE ONLY position
 
 ALTER TABLE ONLY position
     ADD CONSTRAINT fk_track_id FOREIGN KEY (track_id) REFERENCES track(id);
+
+
+DROP PROCEDURE IF EXISTS insert_track(UUID);
+CREATE OR REPLACE PROCEDURE insert_track(id UUID)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO track (id, start_time)
+    VALUES (id, DATE_TRUNC('second', CURRENT_TIMESTAMP));
+
+    COMMIT;
+END;$$
+;
+
+DROP PROCEDURE IF EXISTS insert_position(double precision, double precision, double precision, UUID);
+CREATE OR REPLACE PROCEDURE insert_position(
+    lat double precision,
+    lon double precision,
+    heading double precision,
+    track_id UUID
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE track
+        SET end_time = DATE_TRUNC('second', CURRENT_TIMESTAMP)
+        WHERE id = track_id;
+
+    INSERT INTO position (latitude, longitude, heading, actual_time, track_id)
+    VALUES (lat, lon, heading, DATE_TRUNC('second', CURRENT_TIMESTAMP), track_id);
+
+    COMMIT;
+END;$$
+;
