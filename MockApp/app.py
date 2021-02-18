@@ -36,7 +36,7 @@ async def main():
     except FileNotFoundError as err:
         print(f"File '{err.filename}' does not exist.")
 
-    await sio.emit("recordingStatusMessage", "start")
+    # await sio.emit("recordingStatusMessage", "start")
 
     while True:
         try:
