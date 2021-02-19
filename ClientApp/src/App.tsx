@@ -9,9 +9,16 @@ function App() {
   const [message, setMessage] = useState<string>("Position message here");
   const [incomingCoord, setIncomingCoord] = useState<number[]>();
 
+  const divStyle = {
+    color: "grey",
+    display: "flex",
+    justifyContent: "space-evenly",
+  };
+
   useEffect(() => {
     socket.on("position message", (msg: string) => {
       setMessage(msg);
+      console.log(message);
 
       const jsonMessage = JSON.parse(msg);
       setIncomingCoord([
@@ -24,8 +31,23 @@ function App() {
   return (
     <div className="App">
       <div className="app-label">
-        <p>React Functional Components with OpenLayers</p>
-        <p>{message}</p>
+        <p>Boat Tracking App with OpenLayers</p>
+
+        {incomingCoord ? (
+          <div style={divStyle}>
+            <p>
+              <strong>latitude:</strong> {incomingCoord![0]}
+            </p>
+            <p>
+              <strong>longitude:</strong> {incomingCoord![1]}
+            </p>
+          </div>
+        ) : (
+          <div style={divStyle}>
+            <p>latitude: </p>
+            <p>longitude: </p>
+          </div>
+        )}
       </div>
 
       <MapWrapper incomingCoord={incomingCoord} />

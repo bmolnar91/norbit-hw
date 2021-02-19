@@ -25,6 +25,7 @@ io.on("connection", (socket) => {
 
   socket.on("message", (message) => {
     handleMessage(message);
+    io.emit("position message", message);
   });
 
   socket.on("recordingStatusMessage", (message) => {
