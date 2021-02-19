@@ -1,39 +1,34 @@
 import React, { useState, useEffect } from "react";
-import GeoJSON from "ol/format/GeoJSON";
-import Feature from "ol/Feature";
-import Geometry from "ol/geom/Geometry";
+import MapWrapper from "./components/MapWrapper/MapWrapper";
 import "./App.css";
-import MapWrapper from "./components/map/MapWrapper";
+
+import { io } from "socket.io-client";
+const socket = io(`${process.env.REACT_APP_SERVER_DOMAIN}`);
 
 function App() {
-  // const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
+  const [message, setMessage] = useState<string>("Position message here");
+  const [incomingCoord, setIncomingCoord] = useState<number[]>();
 
-  // useEffect(() => {
-  //   fetch("/mock-geojson-api.json")
-  //     .then((response) => response.json())
-  //     .then((fetchedFeatures) => {
-  //       const wktOptions = {
-  //         dataProjection: "EPSG:4326",
-  //         featureProjection: "EPSG:3857",
-  //       };
-  //       const parsedFeatures = new GeoJSON().readFeatures(
-  //         fetchedFeatures,
-  //         wktOptions
-  //       );
+  useEffect(() => {
+    socket.on("position message", (msg: string) => {
+      setMessage(msg);
 
-  //       setFeatures(parsedFeatures);
-  //     });
-  // }, []);
+      const jsonMessage = JSON.parse(msg);
+      setIncomingCoord([
+        parseFloat(jsonMessage.lat),
+        parseFloat(jsonMessage.lon),
+      ]);
+    });
+  }, []);
 
   return (
     <div className="App">
       <div className="app-label">
         <p>React Functional Components with OpenLayers</p>
-        <p>Click the map to reveal location coordinate via React State</p>
+        <p>{message}</p>
       </div>
 
-      {/* <MapWrapper features={features} /> */}
-      <MapWrapper features={[]} />
+      <MapWrapper incomingCoord={incomingCoord} />
     </div>
   );
 }
