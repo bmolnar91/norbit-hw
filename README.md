@@ -8,6 +8,8 @@ Track your boat's movement on any device with a web browser. Create records of p
 
 The application uses WebSocket connections to efficiently deal with real-time events across multiple clients.
 
+### Project structure
+
 #### MockApp
 
 A simple mock application written in **Python** that streams boat position data to connected clients over a socket.io implementation in _JSON format_.
@@ -37,14 +39,6 @@ Built on a single page based on the **OpenLayers** API, it listens to the server
 
 As of this time, the ClientApp cannot fulfill its purpose as it does not display coordinate / vector changes dynamically.
 
-### Installation
-
-- Set up python environment using `virtualenv` or similar: `pip3 install -r requirements.txt`
-- Use Node version 15.8.0 (consider using a version manager like `nvm`)
-- Install Node.js project dependencies: `npm install`
-- Set up a PostgreSQL database, and run the .sql script
-- Install React.js project dependencies: `npm install`
-
 ### Tech used / Dependencies
 
 - Add-on packages include:
@@ -53,6 +47,14 @@ As of this time, the ClientApp cannot fulfill its purpose as it does not display
   - [OpenLayers](https://www.npmjs.com/package/ol)
   - [TypeScript](https://www.npmjs.com/package/typescript)
   - [asyncio](https://pypi.org/project/asyncio/)
+
+### Installation
+
+- Set up python environment using `virtualenv` or similar: `pip3 install -r requirements.txt`
+- Use Node version 15.8.0 (consider using a version manager like `nvm`)
+- Install Node.js project dependencies: `npm install`
+- Set up a PostgreSQL database, and run the .sql script
+- Install React.js project dependencies: `npm install`
 
 ---
 
