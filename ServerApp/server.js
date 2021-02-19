@@ -11,35 +11,25 @@ const io = socketio(server, {
     credentials: true,
   },
 });
-const db = require("./queries");
 const { v4: uuidv4 } = require("uuid");
+const db = require("./queries");
 
-// Handling state on server as a temporary solution
+// Handling state on the server as a temporary solution
 const state = {
   newestTrackId: null,
   isRecording: false,
 };
 
-// app.use(express.static(path.join(__dirname, "public")));
-
 io.on("connection", (socket) => {
   console.log("New WebSocket connection...");
 
   socket.on("message", (message) => {
-    console.log(message); // test
-    io.emit("position message", message); // test
-
     handleMessage(message);
   });
 
   socket.on("recordingStatusMessage", (message) => {
-    console.log(message); // test
-
     handleRecordingStatusMessage(message);
   });
-
-  io.emit("test", `IO ----- ${new Date()}`); // test
-  socket.emit("test", `SOCKET ----- ${new Date()}`); // test
 });
 
 const handleRecordingStatusMessage = (message) => {
@@ -71,10 +61,6 @@ const handleMessage = (message) => {
     }
   }
 };
-
-app.get("/", (req, res) => {
-  res.send("Hello");
-});
 
 const PORT = 5678 || process.env.PORT;
 

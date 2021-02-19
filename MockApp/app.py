@@ -4,26 +4,21 @@ import aiofiles
 from aiocsv import AsyncDictReader
 import json
 
-csv_path = "./data/line1.csv"
 uri = "ws://localhost:5678"
+csv_path = "./data/line1.csv"
+
 sio = socketio.AsyncClient()
 queue = asyncio.Queue()
 
 
 @sio.event
 async def connect():
-    print("connection established")
-
-
-@sio.event
-async def my_message(data):
-    print("message received with ", data)
-    await sio.emit("my response", {"response": "my response"})
+    print("Connection established")
 
 
 @sio.event
 async def disconnect():
-    print("disconnected from server")
+    print("Disconnected from the server")
 
 
 async def main():
@@ -36,17 +31,20 @@ async def main():
     except FileNotFoundError as err:
         print(f"File '{err.filename}' does not exist.")
 
-    # await sio.emit("recordingStatusMessage", "start")
+    # Fake a client-side track recording
+    await sio.emit("recordingStatusMessage", "start")
 
     while True:
         try:
             head = await asyncio.wait_for(queue.get(), 3)
             json_data = json.dumps(head)
+
             await sio.send(json_data)
-            print(json_data)
+            print(f"Message sent: {json_data}")
+
             await asyncio.sleep(1)
         except asyncio.exceptions.TimeoutError:
-            print("Queue is empty, shutting down...")
+            print("Queue is empty, shutting down")
             quit()
 
 if __name__ == "__main__":
