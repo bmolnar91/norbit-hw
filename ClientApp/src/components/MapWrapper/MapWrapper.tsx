@@ -115,7 +115,6 @@ function MapWrapper(props: { incomingCoord: number[] | undefined }) {
       mapRef?.current
         ?.getView()
         .setCenter([props.incomingCoord![0], props.incomingCoord![1]]);
-      console.log(mapRef?.current?.getView().getCenter());
       featuresLayer?.getSource().changed();
     }
   };

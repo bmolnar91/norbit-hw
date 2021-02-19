@@ -18,7 +18,6 @@ function App() {
   useEffect(() => {
     socket.on("position message", (msg: string) => {
       setMessage(msg);
-      console.log(message);
 
       const jsonMessage = JSON.parse(msg);
       setIncomingCoord([
