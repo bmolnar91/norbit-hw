@@ -9,6 +9,7 @@
 import { defineComponent, ref, computed } from 'vue'
 import { useStore } from "vuex"
 import { io } from 'socket.io-client'
+import { positionMessageParser } from '@/util/jsonParsers.ts'
 
 const socket = io(`${process.env.VUE_APP_SERVER_DOMAIN}`)
 
@@ -26,15 +27,7 @@ export default defineComponent({
     })
 
     const positionData = computed(() => {
-      try {
-        return JSON.parse(message.value, (k, v) => {
-          return (typeof v === "object" || isNaN(v)) ? v : parseFloat(v)
-        })
-      } catch (err) {
-        if (!(err.name === 'SyntaxError')) {
-          throw Error(err.message)
-        }
-      }
+      return positionMessageParser(message.value)
     })
 
     console.log(store.state.positionData)
