@@ -6,8 +6,8 @@
 
 <script>
 
-import {defineComponent, ref} from 'vue'
-import {useStore} from 'vuex'
+import { defineComponent, ref } from 'vue'
+import { useStore } from 'vuex'
 
 export default defineComponent({
   name: 'TestComponent',

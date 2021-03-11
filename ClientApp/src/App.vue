@@ -7,10 +7,10 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import { useStore } from "vuex"
+import { useStore } from 'vuex'
 import { io } from 'socket.io-client'
-import TestComponent from '@/components/TestComponent.vue'
 import { positionMessageParser } from '@/util/jsonParsers.ts'
+import TestComponent from '@/components/TestComponent.vue'
 
 const socket = io(`${process.env.VUE_APP_SERVER_DOMAIN}`)
 
