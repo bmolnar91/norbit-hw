@@ -16,7 +16,7 @@ export default defineComponent({
   components: { MapContainer },
   setup() {
     const store = useStore()
-  
+
     const message = ref('')
 
     socket.on('position message', (msg: string) => {
@@ -39,7 +39,5 @@ export default defineComponent({
 
   margin: 0;
   padding: 0;
-  height: 100vh;
-  width: 100vw;
 }
 </style>
