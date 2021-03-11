@@ -1,13 +1,14 @@
 <template>
   <div>
-    <p>{{ message }}</p>
-    <h3>{{ positionData }}</h3>
-    <h2>Store: {{ store.state.positionData }}</h2>
+    <h3>Message: {{ message }}</h3>
+    <div v-for="record in store.state.positionData">
+      <p>Record: {{ record }}</p>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { useStore } from "vuex"
 import { io } from 'socket.io-client'
 import { positionMessageParser } from '@/util/jsonParsers.ts'
@@ -18,24 +19,15 @@ export default defineComponent({
   name: 'App',
   setup() {
     const store = useStore()
-    store.dispatch('setPositionData', {lat: 1, lon: 1, heading: 1})
 
     const message = ref('')
 
     socket.on('position message', (msg: string) => {
-      console.log(msg)
       message.value = msg
-
-      store.dispatch('setPositionData', positionMessageParser(msg))
+      store.dispatch('addPositionRecord', positionMessageParser(msg))
     })
 
-    const positionData = computed(() => {
-      return positionMessageParser(message.value)
-    })
-
-    console.log(store.state.positionData)
-
-    return { store, message, positionData }
+    return { store, message }
   }
 })
 </script>

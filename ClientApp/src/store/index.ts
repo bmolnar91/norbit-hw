@@ -1,27 +1,29 @@
 import { createStore } from 'vuex'
 
-type PositionData = {
+type PositionRecord = {
   lat: number
   lon: number
   heading: number
 }
 
-export type State = { positionData: PositionData }
+type PositionData = {
+  positionData: PositionRecord[]
+}
 
-const state: State = { positionData: { lat: 0, lon: 0, heading: 0 } }
+export type State = { positionData: PositionRecord[] }
+
+const state: State = { positionData: [] }
 
 export default createStore({
   state,
   mutations: {
-    setPositionData(state, payload: PositionData) {
-      state.positionData.lat = payload.lat
-      state.positionData.lon = payload.lon
-      state.positionData.heading = payload.heading
+    addPositionRecord(state, payload: PositionRecord) {
+      state.positionData.push(payload)
     }
   },
   actions: {
-    setPositionData({ commit }, payload: PositionData) {
-      commit('setPositionData', payload)
+    addPositionRecord({ commit }, payload: PositionData) {
+      commit('addPositionRecord', payload)
     }
   },
   getters: {
