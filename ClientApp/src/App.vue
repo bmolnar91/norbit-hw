@@ -1,8 +1,5 @@
 <template>
-  <div>
-    <h3>Message: {{ message }}</h3>
-    <TestComponent />
-  </div>
+  <MapContainer />
 </template>
 
 <script lang="ts">
@@ -10,16 +7,16 @@ import { defineComponent, ref } from 'vue'
 import { useStore } from 'vuex'
 import { io } from 'socket.io-client'
 import { positionMessageParser } from '@/util/jsonParsers'
-import TestComponent from '@/components/TestComponent.vue'
+import MapContainer from '@/components/MapContainer.vue'
 
 const socket = io(`${process.env.VUE_APP_SERVER_DOMAIN}`)
 
 export default defineComponent({
   name: 'App',
-  components: {TestComponent},
+  components: { MapContainer },
   setup() {
     const store = useStore()
-
+  
     const message = ref('')
 
     socket.on('position message', (msg: string) => {
@@ -39,6 +36,10 @@ export default defineComponent({
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
 }
 </style>
