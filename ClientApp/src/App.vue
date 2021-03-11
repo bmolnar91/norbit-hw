@@ -2,6 +2,7 @@
   <div>
     <p>{{ message }}</p>
     <h3>{{ positionData }}</h3>
+    <h2>Store: {{ store.state.positionData }}</h2>
   </div>
 </template>
 
@@ -24,6 +25,8 @@ export default defineComponent({
     socket.on('position message', (msg: string) => {
       console.log(msg)
       message.value = msg
+
+      store.dispatch('setPositionData', positionMessageParser(msg))
     })
 
     const positionData = computed(() => {
@@ -32,7 +35,7 @@ export default defineComponent({
 
     console.log(store.state.positionData)
 
-    return { message, positionData }
+    return { store, message, positionData }
   }
 })
 </script>
