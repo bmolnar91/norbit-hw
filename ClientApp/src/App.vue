@@ -1,9 +1,7 @@
 <template>
   <div>
     <h3>Message: {{ message }}</h3>
-    <div v-for="record in store.state.positionData">
-      <p>Record: {{ record }}</p>
-    </div>
+    <TestComponent />
   </div>
 </template>
 
@@ -11,12 +9,14 @@
 import { defineComponent, ref } from 'vue'
 import { useStore } from "vuex"
 import { io } from 'socket.io-client'
+import TestComponent from '@/components/TestComponent.vue'
 import { positionMessageParser } from '@/util/jsonParsers.ts'
 
 const socket = io(`${process.env.VUE_APP_SERVER_DOMAIN}`)
 
 export default defineComponent({
   name: 'App',
+  components: {TestComponent},
   setup() {
     const store = useStore()
 
