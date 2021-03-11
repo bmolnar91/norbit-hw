@@ -4,21 +4,25 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, ref, onMounted } from 'vue'
+<script lang="ts">
+import { defineComponent, ref, watch, onMounted } from 'vue'
 
 import View from 'ol/View'
 import Map from 'ol/Map'
 import TileLayer from 'ol/layer/Tile'
 import OSM from 'ol/source/OSM'
+import VectorLayer from 'ol/layer/Vector'
 import VectorImage from 'ol/layer/VectorImage'
 import Vector from 'ol/source/Vector'
-import Style from "ol/style/Style"
+import Style from 'ol/style/Style'
 import GeoJSON from 'ol/format/GeoJSON'
-import { Fill, Stroke, RegularShape } from "ol/style"
+import { Fill, Stroke, RegularShape } from 'ol/style'
 import { fromLonLat } from 'ol/proj'
 
 import 'ol/ol.css'
+import VectorSource from "ol/source/Vector";
+import {useStore} from "vuex";
+import {PositionRecord} from "@/store";
 
 const sampleData = {
   type: 'FeatureCollection',
@@ -74,7 +78,7 @@ const triangleStyle = new RegularShape({
   angle: 0
 })
 
-const vectorImage = new VectorImage({
+const vectorImageSample = new VectorImage({
   source: new Vector({
     format: new GeoJSON(),
     features: new GeoJSON().readFeatures(sampleData),
@@ -90,17 +94,73 @@ const vectorImage = new VectorImage({
 export default defineComponent({
   name: 'MapContainer',
   setup() {
+    const store = useStore()
+
     const mapRoot = ref(null)
 
-    onMounted(() => {
+    let map: Map | null = null
+    let vectorLayer: VectorLayer | null = null
 
-      new Map({
-        target: mapRoot.value,
+    const updateSource = (geoJson: object): void => {
+      // const view = map?.getView()
+      const source = vectorLayer?.getSource()
+
+      const features = new GeoJSON().readFeatures(geoJson)
+
+      source?.clear()
+      source?.addFeatures(features)
+
+      // if (source) {
+      //   view?.fit(source.getExtent())
+      // }
+    }
+
+    watch(store.state.positionData, () => {
+      console.log('source updated')
+
+      updateSource({
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates:
+                store.state.positionData.map((record: PositionRecord) => {
+                  return fromLonLat([record.lon, record.lat])
+                })
+            }
+          },
+          {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: fromLonLat(
+                [
+                  store.state.positionData[store.state.positionData.length - 1].lon,
+                  store.state.positionData[store.state.positionData.length - 1].lat
+                ]
+              )
+            }
+          }
+        ]
+      })
+    })
+
+    onMounted(() => {
+      vectorLayer = new VectorLayer({
+        source: new VectorSource({
+          features: []
+        })
+      })
+
+      map = new Map({
+        target: mapRoot.value || undefined,
         layers: [
           new TileLayer({
             source: new OSM()
           }),
-          vectorImage
+          vectorLayer
         ],
         view: new View({
           zoom: 23,
@@ -108,6 +168,8 @@ export default defineComponent({
           constrainResolution: true
         })
       })
+
+      updateSource(sampleData)
     })
 
     return { mapRoot }

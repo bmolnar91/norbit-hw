@@ -1,12 +1,12 @@
 import { createStore } from 'vuex'
 
-type PositionRecord = {
+export type PositionRecord = {
   lat: number
   lon: number
   heading: number
 }
 
-type PositionData = {
+export type PositionData = {
   positionData: PositionRecord[]
 }
 
