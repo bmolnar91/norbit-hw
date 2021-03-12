@@ -21,6 +21,7 @@ import 'ol/ol.css'
 
 import { PositionRecord } from '@/store'
 import { boatStyle } from '@/components/MapContainer/boatStyles'
+import { getBoatGeoJson } from '@/components/MapContainer/boatGeoJson'
 
 
 export default defineComponent({
@@ -47,35 +48,13 @@ export default defineComponent({
     }
 
     watch(store.state.positionData, () => {
-      console.log('source updated')
-
-      updateSource({
-        type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            geometry: {
-              type: 'LineString',
-              coordinates:
-                store.state.positionData.map((record: PositionRecord) => {
-                  return fromLonLat([record.lon, record.lat])
-                })
-            }
-          },
-          {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: fromLonLat(
-                [
-                  store.state.positionData[store.state.positionData.length - 1].lon,
-                  store.state.positionData[store.state.positionData.length - 1].lat
-                ]
-              )
-            }
-          }
-        ]
+      const lineStringCoordinates = store.state.positionData.map((record: PositionRecord) => {
+        return fromLonLat([record.lon, record.lat])
       })
+      const boatCoordinate = fromLonLat([store.state.positionData[store.state.positionData.length - 1].lon, store.state.positionData[store.state.positionData.length - 1].lat])
+      const geoJson = getBoatGeoJson(lineStringCoordinates, boatCoordinate)
+
+      updateSource(geoJson)
     })
 
     onMounted(() => {
@@ -87,7 +66,7 @@ export default defineComponent({
       })
 
       map = new Map({
-        target: mapRoot.value || undefined,
+        target: mapRoot?.value || undefined,
         layers: [
           new TileLayer({
             source: new OSM()
