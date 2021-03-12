@@ -7,7 +7,7 @@ import { defineComponent, ref } from 'vue'
 import { useStore } from 'vuex'
 import { io } from 'socket.io-client'
 import { positionMessageParser } from '@/util/jsonParsers'
-import MapContainer from '@/components/MapContainer.vue'
+import MapContainer from '@/components/MapContainer/MapContainer.vue'
 
 const socket = io(`${process.env.VUE_APP_SERVER_DOMAIN}`)
 
