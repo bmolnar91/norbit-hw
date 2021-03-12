@@ -23,9 +23,16 @@ import { PositionRecord } from '@/store'
 import { boatStyle } from '@/components/MapContainer/boatStyles'
 import { getBoatGeoJson } from '@/components/MapContainer/boatGeoJson'
 
-
 export default defineComponent({
   name: 'MapContainer',
+  sockets: {
+    connect() {
+      console.log('socket connected')
+    },
+    customEmit(val: string) {
+      console.log('this method was fired by the socket server. eg: io.emit("customEmit", data)')
+    }
+  },
   setup() {
     const store = useStore()
 

@@ -9,7 +9,7 @@ import { io } from 'socket.io-client'
 import { positionMessageParser } from '@/util/jsonParsers'
 import MapContainer from '@/components/MapContainer/MapContainer.vue'
 
-const socket = io(`${process.env.VUE_APP_SERVER_DOMAIN}`)
+// const socket = io(process.env.VUE_APP_SERVER_DOMAIN)
 
 export default defineComponent({
   name: 'App',
@@ -19,10 +19,10 @@ export default defineComponent({
 
     const message = ref('')
 
-    socket.on('position message', (msg: string) => {
-      message.value = msg
-      store.dispatch('addPositionRecord', positionMessageParser(msg))
-    })
+    // socket.on('position message', (msg: string) => {
+    //   message.value = msg
+    //   store.dispatch('addPositionRecord', positionMessageParser(msg))
+    // })
 
     return { store, message }
   }
