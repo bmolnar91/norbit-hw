@@ -1,20 +1,34 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
-  </div>
+  <MapContainer />
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-import HelloWorld from './components/HelloWorld.vue';
+import { Component, Vue } from 'vue-property-decorator'
+import { io } from 'socket.io-client'
+import { positionMessageParser } from '@/util/jsonParsers'
+import MapContainer from '@/components/MapContainer/MapContainer.vue'
+
+const socket = io(process.env.VUE_APP_SERVER_DOMAIN)
 
 @Component({
   components: {
-    HelloWorld,
-  },
+    MapContainer
+  }
 })
-export default class App extends Vue {}
+export default class App extends Vue {
+  data() {
+    return {
+      message: 'bob'
+    }
+  }
+
+  created() {
+    socket.on('position message', (msg: string) => {
+      this.$data.message = msg
+      this.$store.dispatch('addPositionRecord', positionMessageParser(msg))
+    })
+  }
+}
 </script>
 
 <style>
@@ -24,6 +38,8 @@ export default class App extends Vue {}
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+
+  margin: 0;
+  padding: 0;
 }
 </style>
