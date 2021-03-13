@@ -1,34 +1,13 @@
-import Vue from "vue";
-import Vuex from "vuex";
+import Vue from 'vue'
+import Vuex from 'vuex'
+import PositionData from '@/store/modules/positionData'
 
-Vue.use(Vuex);
+Vue.use(Vuex)
 
-export type PositionRecord = {
-  lat: number;
-  lon: number;
-  heading: number;
-};
+const store = new Vuex.Store({
+  modules: {
+    PositionData
+  }
+})
 
-export type PositionData = {
-  positionData: PositionRecord[];
-};
-
-export type State = { positionData: PositionRecord[] };
-
-const state: State = { positionData: [] };
-
-export default new Vuex.Store({
-  state,
-  mutations: {
-    addPositionRecord(state, payload: PositionRecord) {
-      state.positionData.push(payload);
-    }
-  },
-  actions: {
-    addPositionRecord({ commit }, payload: PositionData) {
-      commit("addPositionRecord", payload);
-    }
-  },
-  getters: {},
-  modules: {}
-});
+export default store

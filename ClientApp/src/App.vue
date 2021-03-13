@@ -3,30 +3,33 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { io } from "socket.io-client";
-import { positionMessageParser } from "@/util/jsonParsers";
-import MapContainer from "@/components/MapContainer/MapContainer.vue";
+import { Component, Vue } from 'vue-property-decorator'
+import { io } from 'socket.io-client'
+import { positionMessageParser } from '@/util/jsonParsers'
+import MapContainer from '@/components/MapContainer/MapContainer.vue'
 
-const socket = io(process.env.VUE_APP_SERVER_DOMAIN);
+import { namespace } from 'vuex-class'
+import { PositionRecord } from '@/store/modules/positionData'
+const positionData = namespace('PositionData')
+
+const socket = io(process.env.VUE_APP_SERVER_DOMAIN)
 
 @Component({
+  name: 'App',
   components: {
     MapContainer
   }
 })
 export default class App extends Vue {
-  data() {
-    return {
-      message: "bob"
-    };
-  }
+  @positionData.Action
+  public updatePositionData!: (record: PositionRecord) => void
 
   created() {
-    socket.on("position message", (msg: string) => {
-      this.$data.message = msg;
-      this.$store.dispatch("addPositionRecord", positionMessageParser(msg));
-    });
+    socket.on('position message', (msg: string) => {
+      this.$data.message = msg
+      const jsonObject = positionMessageParser(msg)
+      this.updatePositionData(jsonObject as PositionRecord)
+    })
   }
 }
 </script>

@@ -1,11 +1,11 @@
-export const positionMessageParser = (msg: string) => {
+export const positionMessageParser = (msg: string): object | undefined => {
   try {
     return JSON.parse(msg, (k, v) => {
-      return typeof v === "object" || isNaN(v) ? v : parseFloat(v);
-    });
+      return typeof v === 'object' || isNaN(v) ? v : parseFloat(v)
+    })
   } catch (err) {
-    if (!(err.name === "SyntaxError")) {
-      throw Error(err.message);
+    if (!(err.name === 'SyntaxError')) {
+      throw Error(err.message)
     }
   }
-};
+}

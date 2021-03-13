@@ -1,26 +1,26 @@
-import { Coordinate } from "ol/coordinate";
+import { Coordinate } from 'ol/coordinate'
 
 export const getBoatGeoJson = (
   lineStringCoordinates: Coordinate[],
   pointCoordinates: Coordinate
 ) => {
   return {
-    type: "FeatureCollection",
+    type: 'FeatureCollection',
     features: [
       {
-        type: "Feature",
+        type: 'Feature',
         geometry: {
-          type: "LineString",
+          type: 'LineString',
           coordinates: lineStringCoordinates
         }
       },
       {
-        type: "Feature",
+        type: 'Feature',
         geometry: {
-          type: "Point",
+          type: 'Point',
           coordinates: pointCoordinates
         }
       }
     ]
-  };
-};
+  }
+}
