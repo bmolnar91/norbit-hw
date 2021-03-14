@@ -32,7 +32,6 @@ export default class MapContainer extends Vue {
 
   $refs!: {
     mapRoot: HTMLDivElement
-    bob: HTMLInputElement
   }
 
   data() {
