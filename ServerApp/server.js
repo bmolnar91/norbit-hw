@@ -31,6 +31,10 @@ io.on("connection", (socket) => {
   socket.on("recordingStatusMessage", (message) => {
     handleRecordingStatusMessage(message);
   });
+
+  socket.on("testMessage", (message) => {
+    console.log("TEST MESSAGE CAME THROUGH");
+  });
 });
 
 const handleRecordingStatusMessage = (message) => {

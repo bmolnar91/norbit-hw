@@ -19,14 +19,21 @@ const positionData = namespace('PositionData')
   }
 })
 export default class App extends Vue {
+  @positionData.State
+  public isRecording!: boolean
+
   @positionData.Action
   public updatePositionData!: (record: PositionRecord) => void
 
+  @positionData.Action
+  public updateRecording!: (newStatus: boolean) => void
+
   @Socket('position message')
   onPositionMessage(msg: string) {
-    this.$data.message = msg
     const jsonObject = positionMessageParser(msg)
     this.updatePositionData(jsonObject as PositionRecord)
+    this.updateRecording(true)
+    this.$socket.client.emit('testMessage')
   }
 }
 </script>
