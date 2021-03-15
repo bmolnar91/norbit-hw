@@ -2,6 +2,7 @@ require("dotenv").config();
 const path = require("path");
 const http = require("http");
 const express = require("express");
+const cors = require("cors");
 const socketio = require("socket.io");
 const app = express();
 const server = http.createServer(app);
@@ -20,6 +21,8 @@ const state = {
   isRecording: false,
 };
 
+app.use(cors());
+
 io.on("connection", (socket) => {
   console.log("New WebSocket connection...");
 
@@ -28,25 +31,25 @@ io.on("connection", (socket) => {
     io.emit("position message", message);
   });
 
-  socket.on("recordingStatusMessage", (message) => {
-    handleRecordingStatusMessage(message);
-  });
+  // socket.on("recordingStatusMessage", (message) => {
+  //   handleRecordingStatusMessage(message);
+  // });
 
-  socket.on("testMessage", (message) => {
-    console.log("TEST MESSAGE CAME THROUGH");
-  });
+  // socket.on("testMessage", (message) => {
+  //   console.log("TEST MESSAGE CAME THROUGH");
+  // });
 });
 
-const handleRecordingStatusMessage = (message) => {
-  if (message === "start") {
-    state.isRecording = true;
-    state.newestTrackId = uuidv4();
+// const handleRecordingStatusMessage = (message) => {
+//   if (message === "start") {
+//     state.isRecording = true;
+//     state.newestTrackId = uuidv4();
 
-    db.insertTrack(state.newestTrackId);
-  } else if (message === "stop") {
-    state.isRecording = false;
-  }
-};
+//     db.insertTrack(state.newestTrackId);
+//   } else if (message === "stop") {
+//     state.isRecording = false;
+//   }
+// };
 
 const handleMessage = (message) => {
   if (state.isRecording) {
@@ -66,6 +69,38 @@ const handleMessage = (message) => {
     }
   }
 };
+
+app.post("/record/start", (req, res) => {
+  if (!state.isRecording) {
+    try {
+      state.newestTrackId = uuidv4();
+      db.insertTrack(state.newestTrackId);
+
+      state.isRecording = true;
+
+      res.sendStatus(204);
+      console.log("success: recording started");
+    } catch (err) {
+      res.sendStatus(500);
+      throw err;
+    }
+  } else {
+    res.sendStatus(400);
+    console.log("bad request: a recording was already running");
+  }
+});
+
+app.post("/record/stop", (req, res) => {
+  if (state.isRecording) {
+    state.isRecording = false;
+
+    res.sendStatus(204);
+    console.log("success: recording ended");
+  } else {
+    res.sendStatus(400);
+    console.log("bad request: no running recording");
+  }
+});
 
 const PORT = 5678 || process.env.PORT;
 

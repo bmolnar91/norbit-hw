@@ -20,7 +20,7 @@ class PositionData extends VuexModule {
     this.context.commit('addPositionRecord', record)
   }
 
-  @Action
+  @Action({ rawError: true })
   public updateRecording(newStatus: boolean) {
     this.context.commit('setRecording', newStatus)
   }
