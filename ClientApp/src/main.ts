@@ -4,7 +4,9 @@ import VueSocketIOExt from 'vue-socket.io-extended'
 import { io } from 'socket.io-client'
 import store from './store/index'
 
-const socket = io(process.env.VUE_APP_SERVER_DOMAIN)
+const socket = io(
+  `ws://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/`
+)
 
 Vue.config.productionTip = false
 

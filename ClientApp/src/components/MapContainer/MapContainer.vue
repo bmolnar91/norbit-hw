@@ -7,7 +7,7 @@ import { Component, Vue } from 'vue-property-decorator'
 
 import { namespace } from 'vuex-class'
 const positionData = namespace('PositionData')
-import { PositionRecord } from '@/store/modules/positionData'
+import { PositionRecord } from '@/common/positionRecord'
 
 import View from 'ol/View'
 import Map from 'ol/Map'
@@ -61,18 +61,21 @@ export default class MapContainer extends Vue {
 
   created() {
     this.$store.subscribe(() => {
-      const lineStringCoordinates = this.positionRecords.map(
-        (record: PositionRecord) => {
-          return fromLonLat([record.lon, record.lat])
-        }
-      )
-      const boatCoordinate = fromLonLat([
-        this.positionRecords[this.positionRecords.length - 1].lon,
-        this.positionRecords[this.positionRecords.length - 1].lat
-      ])
-      const geoJson = getBoatGeoJson(lineStringCoordinates, boatCoordinate)
+      if (this.positionRecords.length > 0) {
+        console.log(this.positionRecords)
+        const lineStringCoordinates = this.positionRecords.map(
+          (record: PositionRecord) => {
+            return fromLonLat([record.lon, record.lat])
+          }
+        )
+        const boatCoordinate = fromLonLat([
+          this.positionRecords[this.positionRecords.length - 1].lon,
+          this.positionRecords[this.positionRecords.length - 1].lat
+        ])
+        const geoJson = getBoatGeoJson(lineStringCoordinates, boatCoordinate)
 
-      this.updateSource(geoJson)
+        this.updateSource(geoJson)
+      }
     })
   }
 

@@ -8,17 +8,18 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
   cors: {
-    origin: process.env.CLIENT_DOMAIN,
-    credentials: true,
+    origin: "*",
+    methods: ["GET", "POST"],
   },
 });
 const { v4: uuidv4 } = require("uuid");
 const db = require("./queries");
 
-// Handling state on the server as a temporary solution
+// Handling state on the server as a temporary (?) solution
 const state = {
   newestTrackId: null,
   isRecording: false,
+  recordedPositions: [],
 };
 
 app.use(cors());
@@ -26,30 +27,15 @@ app.use(cors());
 io.on("connection", (socket) => {
   console.log("New WebSocket connection...");
 
+  io.emit("recordingStatusMessage", state.isRecording);
+
+  io.emit("recordedPositionsMessage", state.recordedPositions);
+
   socket.on("message", (message) => {
     handleMessage(message);
-    io.emit("position message", message);
+    io.emit("position message", JSON.parse(message));
   });
-
-  // socket.on("recordingStatusMessage", (message) => {
-  //   handleRecordingStatusMessage(message);
-  // });
-
-  // socket.on("testMessage", (message) => {
-  //   console.log("TEST MESSAGE CAME THROUGH");
-  // });
 });
-
-// const handleRecordingStatusMessage = (message) => {
-//   if (message === "start") {
-//     state.isRecording = true;
-//     state.newestTrackId = uuidv4();
-
-//     db.insertTrack(state.newestTrackId);
-//   } else if (message === "stop") {
-//     state.isRecording = false;
-//   }
-// };
 
 const handleMessage = (message) => {
   if (state.isRecording) {
@@ -62,6 +48,8 @@ const handleMessage = (message) => {
         jsonMessage.heading,
         state.newestTrackId
       );
+
+      state.recordedPositions.push(jsonMessage);
     } catch (err) {
       if (!err instanceof SyntaxError) {
         throw err;
@@ -79,7 +67,8 @@ app.post("/record/start", (req, res) => {
       state.isRecording = true;
 
       res.sendStatus(204);
-      console.log("success: recording started");
+      io.emit("recordingStatusMessage", state.isRecording);
+      console.log("success: recording STARTED");
     } catch (err) {
       res.sendStatus(500);
       throw err;
@@ -95,7 +84,10 @@ app.post("/record/stop", (req, res) => {
     state.isRecording = false;
 
     res.sendStatus(204);
-    console.log("success: recording ended");
+    io.emit("recordingStatusMessage", state.isRecording);
+    console.log("success: recording ENDED");
+
+    state.recordedPositions = [];
   } else {
     res.sendStatus(400);
     console.log("bad request: no running recording");

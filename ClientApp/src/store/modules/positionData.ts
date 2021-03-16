@@ -1,13 +1,19 @@
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
+import { PositionRecord } from '@/common/positionRecord'
 
 @Module({ namespaced: true })
 class PositionData extends VuexModule {
   public positionRecords: PositionRecord[] = []
-  public isRecording = false
+  public isRecording: boolean | null = null
 
   @Mutation
   public addPositionRecord(record: PositionRecord) {
     this.positionRecords.push(record)
+  }
+
+  @Mutation
+  public setPositionRecords(records: PositionRecord[]) {
+    this.positionRecords = records
   }
 
   @Mutation
@@ -21,15 +27,14 @@ class PositionData extends VuexModule {
   }
 
   @Action({ rawError: true })
+  public updatePositionRecords(records: PositionRecord[]) {
+    this.context.commit('setPositionRecords', records)
+  }
+
+  @Action({ rawError: true })
   public updateRecording(newStatus: boolean) {
     this.context.commit('setRecording', newStatus)
   }
-}
-
-export type PositionRecord = {
-  lat: number
-  lon: number
-  heading: number
 }
 
 export default PositionData
