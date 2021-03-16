@@ -31,7 +31,7 @@ import {
 })
 export default class MapContainer extends Vue {
   @positionData.State
-  public positionRecords!: Position[]
+  public currentPositions!: Position[]
 
   @positionData.State
   public boatPosition!: Position
@@ -75,8 +75,8 @@ export default class MapContainer extends Vue {
           this.boatPosition.lat
         ])
 
-        if (this.positionRecords.length > 0 && this.isRecording) {
-          const lineStringCoordinates = this.positionRecords.map(
+        if (this.currentPositions.length > 0 && this.isRecording) {
+          const lineStringCoordinates = this.currentPositions.map(
             (record: Position) => {
               return fromLonLat([record.lon, record.lat])
             }
