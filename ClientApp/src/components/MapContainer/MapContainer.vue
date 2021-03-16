@@ -4,27 +4,27 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
-
 import { namespace } from 'vuex-class'
-const positionData = namespace('PositionData')
-import { Position } from '@/common/position'
 
-import View from 'ol/View'
 import Map from 'ol/Map'
-import TileLayer from 'ol/layer/Tile'
-import OSM from 'ol/source/OSM'
-import VectorLayer from 'ol/layer/Vector'
-import VectorSource from 'ol/source/Vector'
-import Style from 'ol/style/Style'
-import GeoJSON from 'ol/format/GeoJSON'
+import View from 'ol/View'
 import { fromLonLat } from 'ol/proj'
+import VectorSource from 'ol/source/Vector'
+import OSM from 'ol/source/OSM'
+import TileLayer from 'ol/layer/Tile'
+import VectorLayer from 'ol/layer/Vector'
+import GeoJSON from 'ol/format/GeoJSON'
+import Style from 'ol/style/Style'
 import 'ol/ol.css'
 
-import { boatStyle } from '@/components/MapContainer/boatStyles'
+import { Position } from '@/common/position'
 import {
   getLineAndBoatGeoJson,
   getBoatGeoJson
 } from '@/components/MapContainer/boatGeoJson'
+import { boatStyle } from '@/components/MapContainer/boatStyles'
+
+const positionData = namespace('PositionData')
 
 @Component({
   name: 'MapContainer'
@@ -50,6 +50,29 @@ export default class MapContainer extends Vue {
     }
   }
 
+  handleStoreMutation() {
+    let geoJson = null
+
+    if (this.boatPosition) {
+      const boatCoordinate = fromLonLat([
+        this.boatPosition.lon,
+        this.boatPosition.lat
+      ])
+
+      if (this.currentPositions.length > 0 && this.isRecording) {
+        const lineStringCoordinates = this.currentPositions.map(
+          (record: Position) => {
+            return fromLonLat([record.lon, record.lat])
+          }
+        )
+        geoJson = getLineAndBoatGeoJson(lineStringCoordinates, boatCoordinate)
+      } else {
+        geoJson = getBoatGeoJson(boatCoordinate)
+      }
+      this.updateSource(geoJson)
+    }
+  }
+
   updateSource(geoJson: object): void {
     const source = this.$data.vectorLayer?.getSource()
     const features = new GeoJSON().readFeatures(geoJson)
@@ -65,32 +88,7 @@ export default class MapContainer extends Vue {
     }
   }
 
-  created() {
-    this.$store.subscribe(() => {
-      let geoJson = null
-
-      if (this.boatPosition) {
-        const boatCoordinate = fromLonLat([
-          this.boatPosition.lon,
-          this.boatPosition.lat
-        ])
-
-        if (this.currentPositions.length > 0 && this.isRecording) {
-          const lineStringCoordinates = this.currentPositions.map(
-            (record: Position) => {
-              return fromLonLat([record.lon, record.lat])
-            }
-          )
-          geoJson = getLineAndBoatGeoJson(lineStringCoordinates, boatCoordinate)
-        } else {
-          geoJson = getBoatGeoJson(boatCoordinate)
-        }
-        this.updateSource(geoJson)
-      }
-    })
-  }
-
-  mounted() {
+  initMap() {
     this.$data.vectorLayer = new VectorLayer({
       source: new VectorSource({
         features: []
@@ -112,6 +110,14 @@ export default class MapContainer extends Vue {
         constrainResolution: true
       })
     })
+  }
+
+  mounted() {
+    this.$store.subscribe(() => {
+      this.handleStoreMutation()
+    })
+
+    this.initMap()
   }
 }
 </script>

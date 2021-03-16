@@ -9,19 +9,21 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
-import { Socket } from 'vue-socket.io-extended'
-import axios from 'axios'
-import MapContainer from '@/components/MapContainer/MapContainer.vue'
-
 import { namespace } from 'vuex-class'
-import { Position } from '@/common/position'
-const positionData = namespace('PositionData')
+import { Socket } from 'vue-socket.io-extended'
 
+import axios from 'axios'
+
+import { Position } from '@/common/position'
 import {
   positionMessageParser,
   positionMessagesParser,
   PositionMessage
 } from '@/util/jsonParsers'
+
+import MapContainer from '@/components/MapContainer/MapContainer.vue'
+
+const positionData = namespace('PositionData')
 
 @Component({
   name: 'App',
@@ -47,12 +49,12 @@ export default class App extends Vue {
 
   @Socket('position message')
   onPositionMessage(msg: object) {
-    const jsonObject: Position = positionMessageParser(msg as PositionMessage)
+    const position: Position = positionMessageParser(msg as PositionMessage)
 
     if (this.isRecording) {
-      this.addCurrentPosition(jsonObject)
+      this.addCurrentPosition(position)
     }
-    this.setBoatPosition(jsonObject)
+    this.setBoatPosition(position)
   }
 
   @Socket('recording status update')
@@ -64,10 +66,10 @@ export default class App extends Vue {
 
   @Socket('current positions update')
   onRecordedPositionsMessage(msg: PositionMessage[]): void {
-    const jsonObject = positionMessagesParser(msg)
-    console.log(jsonObject)
+    const positions = positionMessagesParser(msg)
+    console.log(positions)
 
-    this.setCurrentPositions(jsonObject)
+    this.setCurrentPositions(positions)
   }
 
   async handleRecordingButtonClick(): Promise<void> {
