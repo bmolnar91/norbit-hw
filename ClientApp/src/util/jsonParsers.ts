@@ -1,4 +1,4 @@
-import { PositionRecord } from '@/common/positionRecord'
+import { Position } from '@/common/position'
 
 export const rawPositionMessageParser = (msg: string): object | undefined => {
   try {
@@ -12,19 +12,17 @@ export const rawPositionMessageParser = (msg: string): object | undefined => {
   }
 }
 
-export const positionMessageParser = (
-  message: PositionMessage
-): PositionRecord => {
+export const positionMessageParser = (message: PositionMessage): Position => {
   return {
     lat: parseFloat(message.lat),
     lon: parseFloat(message.lon),
     heading: parseFloat(message.heading)
-  } as PositionRecord
+  } as Position
 }
 
 export const positionMessagesParser = (
   messages: PositionMessage[]
-): PositionRecord[] => {
+): Position[] => {
   return messages.map(message => {
     return positionMessageParser(message)
   })

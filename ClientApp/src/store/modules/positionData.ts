@@ -1,39 +1,50 @@
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
-import { PositionRecord } from '@/common/positionRecord'
+import { Position } from '@/common/position'
 
 @Module({ namespaced: true })
 class PositionData extends VuexModule {
-  public positionRecords: PositionRecord[] = []
+  public currentPositions: Position[] = []
+  public boatPosition: Position | null = null
   public isRecording: boolean | null = null
 
   @Mutation
-  public addPositionRecord(record: PositionRecord) {
-    this.positionRecords.push(record)
+  public ADD_CURRENT_POSITION(position: Position) {
+    this.currentPositions.push(position)
   }
 
   @Mutation
-  public setPositionRecords(records: PositionRecord[]) {
-    this.positionRecords = records
+  public SET_CURRENT_POSITIONS(positions: Position[]) {
+    this.currentPositions = positions
   }
 
   @Mutation
-  public setRecording(newStatus: boolean) {
-    this.isRecording = newStatus
+  public SET_BOAT_POSITION(position: Position) {
+    this.boatPosition = position
+  }
+
+  @Mutation
+  public SET_RECORDING(status: boolean) {
+    this.isRecording = status
   }
 
   @Action({ rawError: true })
-  public updatePositionData(record: PositionRecord) {
-    this.context.commit('addPositionRecord', record)
+  public addCurrentPosition(position: Position) {
+    this.context.commit('ADD_CURRENT_POSITION', position)
   }
 
   @Action({ rawError: true })
-  public updatePositionRecords(records: PositionRecord[]) {
-    this.context.commit('setPositionRecords', records)
+  public setCurrentPositions(positions: Position[]) {
+    this.context.commit('SET_CURRENT_POSITIONS', positions)
   }
 
   @Action({ rawError: true })
-  public updateRecording(newStatus: boolean) {
-    this.context.commit('setRecording', newStatus)
+  public setBoatPosition(position: Position) {
+    this.context.commit('SET_BOAT_POSITION', position)
+  }
+
+  @Action({ rawError: true })
+  public setRecording(status: boolean) {
+    this.context.commit('SET_RECORDING', status)
   }
 }
 

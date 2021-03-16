@@ -18,8 +18,8 @@ const db = require("./queries");
 // Handling state on the server as a temporary (?) solution
 const state = {
   newestTrackId: null,
+  currentPositions: [],
   isRecording: false,
-  recordedPositions: [],
 };
 
 app.use(cors());
@@ -27,36 +27,52 @@ app.use(cors());
 io.on("connection", (socket) => {
   console.log("New WebSocket connection...");
 
-  io.emit("recordingStatusMessage", state.isRecording);
-
-  io.emit("recordedPositionsMessage", state.recordedPositions);
+  socket.emit("recording status update", state.isRecording);
+  socket.emit("current positions update", state.currentPositions);
 
   socket.on("message", (message) => {
-    handleMessage(message);
     io.emit("position message", JSON.parse(message));
+
+    if (state.isRecording) {
+      recordMessage(message);
+    }
   });
 });
 
-const handleMessage = (message) => {
-  if (state.isRecording) {
-    try {
-      const jsonMessage = JSON.parse(message);
+const recordMessage = (message) => {
+  try {
+    const jsonMessage = JSON.parse(message);
 
-      db.insertPosition(
-        jsonMessage.lat,
-        jsonMessage.lon,
-        jsonMessage.heading,
-        state.newestTrackId
-      );
+    db.insertPosition(
+      jsonMessage.lat,
+      jsonMessage.lon,
+      jsonMessage.heading,
+      state.newestTrackId
+    );
 
-      state.recordedPositions.push(jsonMessage);
-    } catch (err) {
-      if (!err instanceof SyntaxError) {
-        throw err;
-      }
+    state.currentPositions.push(jsonMessage);
+  } catch (err) {
+    if (!err instanceof SyntaxError) {
+      haltRecording();
+      throw err;
     }
   }
 };
+
+const haltRecording = () => {
+  this.isRecording = false;
+  io.emit("recording status update", false);
+};
+
+// const broadcastToAllButSender = (socketId) => {
+//   for (socket of io.sockets.sockets) {
+//     console.log(socket[0]);
+
+//     if (socket[0] !== socketId) {
+//       io.to(socket[0]).emit("recording status update", state.isRecording);
+//     }
+//   }
+// };
 
 app.post("/record/start", (req, res) => {
   if (!state.isRecording) {
@@ -67,15 +83,18 @@ app.post("/record/start", (req, res) => {
       state.isRecording = true;
 
       res.sendStatus(204);
-      io.emit("recordingStatusMessage", state.isRecording);
+      io.emit("recording status update", true);
       console.log("success: recording STARTED");
+
+      io.emit("current positions update", state.currentPositions);
     } catch (err) {
+      haltRecording();
       res.sendStatus(500);
       throw err;
     }
   } else {
     res.sendStatus(400);
-    console.log("bad request: a recording was already running");
+    console.error("bad request: a recording was already running");
   }
 });
 
@@ -84,13 +103,16 @@ app.post("/record/stop", (req, res) => {
     state.isRecording = false;
 
     res.sendStatus(204);
-    io.emit("recordingStatusMessage", state.isRecording);
+    io.emit("recording status update", false);
     console.log("success: recording ENDED");
 
-    state.recordedPositions = [];
+    io.emit("current positions update", state.currentPositions);
+
+    state.currentPositions = [];
   } else {
+    haltRecording();
     res.sendStatus(400);
-    console.log("bad request: no running recording");
+    console.error("bad request: no running recording");
   }
 });
 

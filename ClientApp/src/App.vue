@@ -14,7 +14,7 @@ import axios from 'axios'
 import MapContainer from '@/components/MapContainer/MapContainer.vue'
 
 import { namespace } from 'vuex-class'
-import { PositionRecord } from '@/common/positionRecord'
+import { Position } from '@/common/position'
 const positionData = namespace('PositionData')
 
 import {
@@ -34,61 +34,52 @@ export default class App extends Vue {
   public isRecording!: boolean | null
 
   @positionData.Action
-  public updatePositionData!: (record: PositionRecord) => void
+  public addCurrentPosition!: (position: Position) => void
 
   @positionData.Action
-  public updatePositionRecords!: (records: PositionRecord[]) => void
+  public setCurrentPositions!: (positions: Position[]) => void
 
   @positionData.Action
-  public updateRecording!: (newStatus: boolean) => void
+  public setBoatPosition!: (position: Position) => void
+
+  @positionData.Action
+  public setRecording!: (status: boolean) => void
 
   @Socket('position message')
   onPositionMessage(msg: object) {
-    const jsonObject = positionMessageParser(msg as PositionMessage)
-    this.updatePositionData(jsonObject as PositionRecord)
-    // this.$socket.client.emit('testMessage')
+    const jsonObject: Position = positionMessageParser(msg as PositionMessage)
+
+    if (this.isRecording) {
+      this.addCurrentPosition(jsonObject)
+    }
+    this.setBoatPosition(jsonObject)
   }
 
-  @Socket('recordingStatusMessage')
+  @Socket('recording status update')
   onRecordingStatusMessage(msg: boolean) {
-    console.log(msg)
+    console.log('new status: ' + msg)
 
-    this.updateRecording(msg)
+    this.setRecording(msg)
   }
 
-  @Socket('recordedPositionsMessage')
+  @Socket('current positions update')
   onRecordedPositionsMessage(msg: PositionMessage[]): void {
     const jsonObject = positionMessagesParser(msg)
     console.log(jsonObject)
 
-    this.updatePositionRecords(jsonObject)
+    this.setCurrentPositions(jsonObject)
   }
 
-  async handleRecordingButtonClick(e: MouseEvent): Promise<void> {
-    console.log(e.target)
+  async handleRecordingButtonClick(): Promise<void> {
+    let url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/record/`
+    url += this.isRecording ? 'stop' : 'start'
 
-    if (this.isRecording) {
-      const res = await axios.post(
-        `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/record/stop`
-      )
+    const res = await axios.post(url)
 
-      if (res.status >= 200 && res.status <= 299) {
-        this.updateRecording(false)
-        console.log('recording status updated to: FALSE')
-      } else {
-        throw new Error('A problem occurred')
-      }
+    if (res.status >= 200 && res.status <= 299) {
+      console.log('status successfully set to: ' + this.isRecording)
     } else {
-      const res = await axios.post(
-        `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/record/start`
-      )
-
-      if (res.status >= 200 && res.status <= 299) {
-        this.updateRecording(true)
-        console.log('recording status updated to: TRUE')
-      } else {
-        throw new Error('A problem occurred')
-      }
+      throw new Error('A problem occurred')
     }
   }
 }

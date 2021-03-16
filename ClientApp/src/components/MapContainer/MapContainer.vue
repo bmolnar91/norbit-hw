@@ -7,7 +7,7 @@ import { Component, Vue } from 'vue-property-decorator'
 
 import { namespace } from 'vuex-class'
 const positionData = namespace('PositionData')
-import { PositionRecord } from '@/common/positionRecord'
+import { Position } from '@/common/position'
 
 import View from 'ol/View'
 import Map from 'ol/Map'
@@ -21,14 +21,23 @@ import { fromLonLat } from 'ol/proj'
 import 'ol/ol.css'
 
 import { boatStyle } from '@/components/MapContainer/boatStyles'
-import { getBoatGeoJson } from '@/components/MapContainer/boatGeoJson'
+import {
+  getLineAndBoatGeoJson,
+  getBoatGeoJson
+} from '@/components/MapContainer/boatGeoJson'
 
 @Component({
   name: 'MapContainer'
 })
 export default class MapContainer extends Vue {
   @positionData.State
-  public positionRecords!: PositionRecord[]
+  public positionRecords!: Position[]
+
+  @positionData.State
+  public boatPosition!: Position
+
+  @positionData.State
+  public isRecording!: boolean
 
   $refs!: {
     mapRoot: HTMLDivElement
@@ -52,28 +61,30 @@ export default class MapContainer extends Vue {
     if (boatStyleTemp instanceof Style) {
       boatStyleTemp
         .getImage()
-        .setRotation(
-          (Math.PI / 180) *
-            this.positionRecords[this.positionRecords.length - 1]?.heading
-        )
+        .setRotation((Math.PI / 180) * this.boatPosition.heading)
     }
   }
 
   created() {
     this.$store.subscribe(() => {
-      if (this.positionRecords.length > 0) {
-        console.log(this.positionRecords)
-        const lineStringCoordinates = this.positionRecords.map(
-          (record: PositionRecord) => {
-            return fromLonLat([record.lon, record.lat])
-          }
-        )
-        const boatCoordinate = fromLonLat([
-          this.positionRecords[this.positionRecords.length - 1].lon,
-          this.positionRecords[this.positionRecords.length - 1].lat
-        ])
-        const geoJson = getBoatGeoJson(lineStringCoordinates, boatCoordinate)
+      let geoJson = null
 
+      if (this.boatPosition) {
+        const boatCoordinate = fromLonLat([
+          this.boatPosition.lon,
+          this.boatPosition.lat
+        ])
+
+        if (this.positionRecords.length > 0 && this.isRecording) {
+          const lineStringCoordinates = this.positionRecords.map(
+            (record: Position) => {
+              return fromLonLat([record.lon, record.lat])
+            }
+          )
+          geoJson = getLineAndBoatGeoJson(lineStringCoordinates, boatCoordinate)
+        } else {
+          geoJson = getBoatGeoJson(boatCoordinate)
+        }
         this.updateSource(geoJson)
       }
     })
