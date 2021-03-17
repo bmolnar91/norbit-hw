@@ -6,9 +6,10 @@
         class="track-item"
         v-for="track in this.$data.tracks"
         :key="track.id"
+        @click="log"
       >
         <p>{{ track.end_time }}</p>
-        <button @click="deleteTrackTest(track.id)">delete</button>
+        <button @click="deleteTrackTest($event, track.id)">delete</button>
       </div>
     </div>
   </div>
@@ -54,11 +55,16 @@ export default class TracksModal extends Vue {
     return res.data.positions
   }
 
-  deleteTrackTest(trackId: string) {
+  deleteTrackTest(e: MouseEvent, trackId: string) {
+    e.stopPropagation()
     console.log(trackId + ' deleted!')
     // this.getTracksTest().then(res => {
     //   this.$data.tracks = res
     // })
+  }
+
+  log() {
+    console.log('clicky')
   }
 
   mounted() {
