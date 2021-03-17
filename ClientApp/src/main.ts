@@ -1,5 +1,18 @@
-import { createApp } from 'vue'
+import Vue from 'vue'
 import App from './App.vue'
-import store from './store'
+import VueSocketIOExt from 'vue-socket.io-extended'
+import { io } from 'socket.io-client'
+import store from './store/index'
 
-createApp(App).use(store).mount('#app')
+const socket = io(
+  `ws://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/`
+)
+
+Vue.config.productionTip = false
+
+Vue.use(VueSocketIOExt, socket, { store })
+
+new Vue({
+  store,
+  render: h => h(App)
+}).$mount('#app')

@@ -1,89 +1,125 @@
 <template>
-  <div class="map-root"
-       ref="mapRoot">
-  </div>
+  <div class="map-root" ref="mapRoot"></div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, onMounted } from 'vue'
-import { useStore } from 'vuex'
+import { Component, Vue } from 'vue-property-decorator'
+import { namespace } from 'vuex-class'
 
-import View from 'ol/View'
 import Map from 'ol/Map'
-import TileLayer from 'ol/layer/Tile'
-import OSM from 'ol/source/OSM'
-import VectorLayer from 'ol/layer/Vector'
-import VectorSource from 'ol/source/Vector'
-import Style from 'ol/style/Style'
-import GeoJSON from 'ol/format/GeoJSON'
+import View from 'ol/View'
 import { fromLonLat } from 'ol/proj'
+import VectorSource from 'ol/source/Vector'
+import OSM from 'ol/source/OSM'
+import TileLayer from 'ol/layer/Tile'
+import VectorLayer from 'ol/layer/Vector'
+import GeoJSON from 'ol/format/GeoJSON'
+import Style from 'ol/style/Style'
 import 'ol/ol.css'
 
-import { PositionRecord } from '@/store'
+import { Position } from '@/common/position'
+import {
+  getLineAndBoatGeoJson,
+  getBoatGeoJson
+} from '@/components/MapContainer/boatGeoJson'
 import { boatStyle } from '@/components/MapContainer/boatStyles'
-import { getBoatGeoJson } from '@/components/MapContainer/boatGeoJson'
 
+const positionData = namespace('PositionData')
 
-export default defineComponent({
-  name: 'MapContainer',
-  setup() {
-    const store = useStore()
-
-    const mapRoot = ref<HTMLDivElement | null>(null)
-
-    let map: Map | null = null
-    let vectorLayer: VectorLayer | null = null
-
-    const updateSource = (geoJson: object): void => {
-      const source = vectorLayer?.getSource()
-      const features = new GeoJSON().readFeatures(geoJson)
-
-      source?.clear()
-      source?.addFeatures(features)
-
-      const boatStyleTemp = vectorLayer?.getStyle()
-      if (boatStyleTemp instanceof Style) {
-        boatStyleTemp.getImage().setRotation(Math.PI / 180 * store.state.positionData[store.state.positionData.length - 1]?.heading)
-      }
-    }
-
-    watch(store.state.positionData, () => {
-      const lineStringCoordinates = store.state.positionData.map((record: PositionRecord) => {
-        return fromLonLat([record.lon, record.lat])
-      })
-      const boatCoordinate = fromLonLat([store.state.positionData[store.state.positionData.length - 1].lon, store.state.positionData[store.state.positionData.length - 1].lat])
-      const geoJson = getBoatGeoJson(lineStringCoordinates, boatCoordinate)
-
-      updateSource(geoJson)
-    })
-
-    onMounted(() => {
-      vectorLayer = new VectorLayer({
-        source: new VectorSource({
-          features: []
-        }),
-        style: boatStyle
-      })
-
-      map = new Map({
-        target: mapRoot?.value || undefined,
-        layers: [
-          new TileLayer({
-            source: new OSM()
-          }),
-          vectorLayer
-        ],
-        view: new View({
-          zoom: 23,
-          center: fromLonLat([20.73998593, 48.21339894]),
-          constrainResolution: true
-        })
-      })
-    })
-
-    return { mapRoot }
-  }
+@Component({
+  name: 'MapContainer'
 })
+export default class MapContainer extends Vue {
+  @positionData.State
+  public currentPositions!: Position[]
+
+  @positionData.State
+  public boatPosition!: Position
+
+  @positionData.State
+  public isRecording!: boolean
+
+  $refs!: {
+    mapRoot: HTMLDivElement
+  }
+
+  data() {
+    return {
+      map: null,
+      vectorLayer: null
+    }
+  }
+
+  handleStoreMutation() {
+    let geoJson = null
+
+    if (this.boatPosition) {
+      const boatCoordinate = fromLonLat([
+        this.boatPosition.lon,
+        this.boatPosition.lat
+      ])
+
+      if (this.currentPositions.length > 0 && this.isRecording) {
+        const lineStringCoordinates = this.currentPositions.map(
+          (record: Position) => {
+            return fromLonLat([record.lon, record.lat])
+          }
+        )
+        geoJson = getLineAndBoatGeoJson(lineStringCoordinates, boatCoordinate)
+      } else {
+        geoJson = getBoatGeoJson(boatCoordinate)
+      }
+      this.updateSource(geoJson)
+    }
+  }
+
+  updateSource(geoJson: object): void {
+    const source = this.$data.vectorLayer?.getSource()
+    const features = new GeoJSON().readFeatures(geoJson)
+
+    source?.clear()
+    source?.addFeatures(features)
+
+    const boatStyleTemp = this.$data.vectorLayer?.getStyle()
+    if (boatStyleTemp instanceof Style) {
+      boatStyleTemp
+        .getImage()
+        .setRotation((Math.PI / 180) * this.boatPosition.heading)
+    }
+  }
+
+  initMap() {
+    this.$data.vectorLayer = new VectorLayer({
+      source: new VectorSource({
+        features: []
+      }),
+      style: boatStyle
+    })
+
+    this.$data.map = new Map({
+      target: this.$refs.mapRoot,
+      layers: [
+        new TileLayer({
+          source: new OSM()
+        }),
+        this.$data.vectorLayer
+      ],
+      view: new View({
+        zoom: 18,
+        center: fromLonLat([20.73998593, 48.21339894]),
+        constrainResolution: true
+      })
+    })
+  }
+
+  mounted() {
+    this.$store.subscribe(() => {
+      this.handleStoreMutation()
+    })
+
+    this.initMap()
+  }
+}
 </script>
 
 <style>
