@@ -39,7 +39,6 @@ export default class TracksModal extends Vue {
 
   async getTracksTest(): Promise<void> {
     const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/tracks`
-
     const res = await axios.get(url)
 
     console.log(res.data.tracks)
@@ -48,19 +47,19 @@ export default class TracksModal extends Vue {
 
   async getPositionsTest(): Promise<void> {
     const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/track/388d4def-820c-4f65-8b8b-02aa640b1015`
-
     const res = await axios.get(url)
 
     console.log(res.data.positions)
     return res.data.positions
   }
 
-  deleteTrackTest(e: MouseEvent, trackId: string) {
+  async deleteTrackTest(e: MouseEvent, trackId: string) {
     e.stopPropagation()
-    console.log(trackId + ' deleted!')
-    // this.getTracksTest().then(res => {
-    //   this.$data.tracks = res
-    // })
+
+    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/track/${trackId}`
+    const res = await axios.delete(url)
+
+    this.$data.tracks = res.data.tracks
   }
 
   log() {

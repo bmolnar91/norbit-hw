@@ -138,6 +138,21 @@ app.get("/track/:id", (req, res) => {
     });
 });
 
+app.delete("/track/:id", (req, res) => {
+  const id = req.params.id;
+
+  db.deleteTrack(id)
+    .then(() => {
+      db.getTracks().then((results) => {
+        res.send({ tracks: results.rows });
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(400);
+    });
+});
+
 const PORT = 5678 || process.env.PORT;
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

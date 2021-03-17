@@ -58,9 +58,23 @@ const getPositionsByTrackId = async (trackId) => {
   }
 };
 
+const deleteTrack = async (trackId) => {
+  const query = {
+    text: "CALL delete_track ($1)",
+    values: [trackId],
+  };
+
+  try {
+    return pool.query(query);
+  } catch (err) {
+    throw err;
+  }
+};
+
 module.exports = {
   insertTrack,
   insertPosition,
   getTracks,
   getPositionsByTrackId,
+  deleteTrack,
 };
