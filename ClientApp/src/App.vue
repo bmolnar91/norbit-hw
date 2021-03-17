@@ -8,6 +8,7 @@
     <button id="getPositionsTest" @click="getPositionsTest">
       Get Positions
     </button>
+    <TracksModal />
   </div>
 </template>
 
@@ -26,13 +27,15 @@ import {
 } from '@/util/jsonParsers'
 
 import MapContainer from '@/components/MapContainer/MapContainer.vue'
+import TracksModal from '@/components/TracksModal/TracksModal.vue'
 
 const positionData = namespace('PositionData')
 
 @Component({
   name: 'App',
   components: {
-    MapContainer
+    MapContainer,
+    TracksModal
   }
 })
 export default class App extends Vue {
