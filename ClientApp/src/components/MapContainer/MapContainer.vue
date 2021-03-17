@@ -39,6 +39,9 @@ export default class MapContainer extends Vue {
   @positionData.State
   public isRecording!: boolean
 
+  @positionData.State
+  public selectedPositions!: Position[]
+
   $refs!: {
     mapRoot: HTMLDivElement
   }
@@ -69,6 +72,21 @@ export default class MapContainer extends Vue {
       } else {
         geoJson = getBoatGeoJson(boatCoordinate)
       }
+
+      console.log(this.selectedPositions.length)
+
+      if (this.selectedPositions.length > 0) {
+        const lineStringCoordinates = this.selectedPositions.map(
+          (record: Position) => {
+            console.log(fromLonLat([record.lon, record.lat]))
+            return fromLonLat([record.lon, record.lat])
+          }
+        )
+        geoJson = getLineAndBoatGeoJson(lineStringCoordinates, boatCoordinate)
+      } else {
+        geoJson = getBoatGeoJson(boatCoordinate)
+      }
+
       this.updateSource(geoJson)
     }
   }

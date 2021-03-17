@@ -1,17 +1,22 @@
 <template>
-  <div class="tracks-modal">
-    All tracks:
+  <div class="tracks-modal" v-if="!this.$data.isLoading">
+    Recorded tracks:
     <div class="track-list">
       <div
         class="track-item"
         v-for="track in this.$data.tracks"
         :key="track.id"
-        @click="log"
+        @click="selectedTrackId = track.id"
       >
         <p>{{ track.end_time }}</p>
         <button @click="deleteTrackTest($event, track.id)">delete</button>
       </div>
     </div>
+    <TrackDetailsModal
+      v-if="this.$data.selectedTrackId"
+      :track-id="this.$data.selectedTrackId"
+      :key="this.$data.selectedTrackId"
+    />
   </div>
 </template>
 
@@ -20,10 +25,15 @@ import { Component, Vue } from 'vue-property-decorator'
 import { namespace } from 'vuex-class'
 import axios from 'axios'
 
+import TrackDetailsModal from '@/components/TrackDetailsModal/TrackDetailsModal.vue'
+
 const positionData = namespace('PositionData')
 
 @Component({
-  name: 'TracksModal'
+  name: 'TracksModal',
+  components: {
+    TrackDetailsModal
+  }
 })
 export default class TracksModal extends Vue {
   @positionData.State
@@ -32,8 +42,9 @@ export default class TracksModal extends Vue {
   data() {
     return {
       isOpen: false,
-      isLoading: false,
-      tracks: []
+      isLoading: true,
+      tracks: [],
+      selectedTrackId: null
     }
   }
 
@@ -41,16 +52,7 @@ export default class TracksModal extends Vue {
     const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/tracks`
     const res = await axios.get(url)
 
-    console.log(res.data.tracks)
     return res.data.tracks
-  }
-
-  async getPositionsTest(): Promise<void> {
-    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/track/388d4def-820c-4f65-8b8b-02aa640b1015`
-    const res = await axios.get(url)
-
-    console.log(res.data.positions)
-    return res.data.positions
   }
 
   async deleteTrackTest(e: MouseEvent, trackId: string) {
@@ -62,13 +64,10 @@ export default class TracksModal extends Vue {
     this.$data.tracks = res.data.tracks
   }
 
-  log() {
-    console.log('clicky')
-  }
-
   mounted() {
     this.getTracksTest().then(res => {
       this.$data.tracks = res
+      this.$data.isLoading = false
     })
   }
 }

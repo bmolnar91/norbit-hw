@@ -4,11 +4,7 @@
     <button id="recording-button" @click="handleRecordingButtonClick">
       {{ isRecording ? 'Stop recording' : 'Start recording' }}
     </button>
-    <button id="getTracksTest" @click="getTracksTest">Get Tracks</button>
-    <button id="getPositionsTest" @click="getPositionsTest">
-      Get Positions
-    </button>
-    <TracksModal />
+    <ModalContainer />
   </div>
 </template>
 
@@ -27,7 +23,7 @@ import {
 } from '@/util/jsonParsers'
 
 import MapContainer from '@/components/MapContainer/MapContainer.vue'
-import TracksModal from '@/components/TracksModal/TracksModal.vue'
+import ModalContainer from '@/components/ModalContainer/ModalContainer.vue'
 
 const positionData = namespace('PositionData')
 
@@ -35,7 +31,7 @@ const positionData = namespace('PositionData')
   name: 'App',
   components: {
     MapContainer,
-    TracksModal
+    ModalContainer
   }
 })
 export default class App extends Vue {
@@ -91,22 +87,6 @@ export default class App extends Vue {
       throw new Error('A problem occurred')
     }
   }
-
-  async getTracksTest(): Promise<void> {
-    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/tracks`
-
-    const res = await axios.get(url)
-
-    console.log(res.data.tracks)
-  }
-
-  async getPositionsTest(): Promise<void> {
-    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/track/388d4def-820c-4f65-8b8b-02aa640b1015`
-
-    const res = await axios.get(url)
-
-    console.log(res.data.positions)
-  }
 }
 </script>
 
@@ -128,15 +108,5 @@ export default class App extends Vue {
   position: absolute;
   right: 5rem;
   bottom: 5rem;
-}
-#getTracksTest {
-  position: absolute;
-  right: 5rem;
-  bottom: 10rem;
-}
-#getPositionsTest {
-  position: absolute;
-  right: 5rem;
-  bottom: 15rem;
 }
 </style>
