@@ -63,3 +63,11 @@ BEGIN
     COMMIT;
 END;$$
 ;
+
+DROP VIEW IF EXISTS tracks;
+CREATE VIEW tracks AS
+    SELECT * FROM track;
+
+DROP VIEW IF EXISTS positions;
+CREATE VIEW positions AS
+    SELECT * FROM position;

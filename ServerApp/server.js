@@ -116,6 +116,28 @@ app.post("/record/stop", (req, res) => {
   }
 });
 
+app.get("/tracks", (req, res) => {
+  db.getTracks()
+    .then((results) => {
+      res.send({ tracks: results.rows });
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+});
+
+app.get("/track/:id", (req, res) => {
+  const id = req.params.id;
+
+  db.getPositionsByTrackId(id)
+    .then((results) => {
+      res.send({ positions: results.rows });
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+});
+
 const PORT = 5678 || process.env.PORT;
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

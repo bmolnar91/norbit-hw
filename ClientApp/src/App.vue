@@ -4,6 +4,10 @@
     <button id="recording-button" @click="handleRecordingButtonClick">
       {{ isRecording ? 'Stop recording' : 'Start recording' }}
     </button>
+    <button id="getTracksTest" @click="getTracksTest">Get Tracks</button>
+    <button id="getPositionsTest" @click="getPositionsTest">
+      Get Positions
+    </button>
   </div>
 </template>
 
@@ -73,8 +77,8 @@ export default class App extends Vue {
   }
 
   async handleRecordingButtonClick(): Promise<void> {
-    let url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/record/`
-    url += this.isRecording ? 'stop' : 'start'
+    let url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/record`
+    url += this.isRecording ? '/stop' : '/start'
 
     const res = await axios.post(url)
 
@@ -83,6 +87,22 @@ export default class App extends Vue {
     } else {
       throw new Error('A problem occurred')
     }
+  }
+
+  async getTracksTest(): Promise<void> {
+    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/tracks`
+
+    const res = await axios.get(url)
+
+    console.log(res.data.tracks)
+  }
+
+  async getPositionsTest(): Promise<void> {
+    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/track/388d4def-820c-4f65-8b8b-02aa640b1015`
+
+    const res = await axios.get(url)
+
+    console.log(res.data.positions)
   }
 }
 </script>
@@ -105,5 +125,15 @@ export default class App extends Vue {
   position: absolute;
   right: 5rem;
   bottom: 5rem;
+}
+#getTracksTest {
+  position: absolute;
+  right: 5rem;
+  bottom: 10rem;
+}
+#getPositionsTest {
+  position: absolute;
+  right: 5rem;
+  bottom: 15rem;
 }
 </style>

@@ -33,7 +33,34 @@ const insertPosition = async (lat, lon, heading, trackId) => {
   }
 };
 
+const getTracks = async () => {
+  const query = {
+    text: "SELECT * FROM tracks",
+  };
+
+  try {
+    return pool.query(query);
+  } catch (err) {
+    throw err;
+  }
+};
+
+const getPositionsByTrackId = async (trackId) => {
+  const query = {
+    text: "SELECT * FROM positions WHERE track_id = ($1)",
+    values: [trackId],
+  };
+
+  try {
+    return pool.query(query);
+  } catch (err) {
+    throw err;
+  }
+};
+
 module.exports = {
   insertTrack,
   insertPosition,
+  getTracks,
+  getPositionsByTrackId,
 };
