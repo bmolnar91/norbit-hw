@@ -6,6 +6,7 @@ class PositionData extends VuexModule {
   public currentPositions: Position[] = []
   public boatPosition: Position | null = null
   public isRecording: boolean | null = null
+  public selectedPositions: Position[] = []
 
   @Mutation
   public ADD_CURRENT_POSITION(position: Position) {
@@ -27,6 +28,11 @@ class PositionData extends VuexModule {
     this.isRecording = status
   }
 
+  @Mutation
+  public SET_SELECTED_POSITIONS(positions: Position[]) {
+    this.selectedPositions = positions
+  }
+
   @Action({ rawError: true })
   public addCurrentPosition(position: Position) {
     this.context.commit('ADD_CURRENT_POSITION', position)
@@ -45,6 +51,11 @@ class PositionData extends VuexModule {
   @Action({ rawError: true })
   public setRecording(status: boolean) {
     this.context.commit('SET_RECORDING', status)
+  }
+
+  @Action({ rawError: true })
+  public setSelectedPositions(positions: Position[]) {
+    this.context.commit('SET_SELECTED_POSITIONS', positions)
   }
 }
 

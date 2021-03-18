@@ -14,7 +14,7 @@ const insertTrack = async (trackId) => {
   };
 
   try {
-    await pool.query(query);
+    return await pool.query(query);
   } catch (err) {
     throw err;
   }
@@ -27,7 +27,45 @@ const insertPosition = async (lat, lon, heading, trackId) => {
   };
 
   try {
-    await pool.query(query);
+    return await pool.query(query);
+  } catch (err) {
+    throw err;
+  }
+};
+
+const getTracks = async () => {
+  const query = {
+    text: "SELECT * FROM tracks",
+  };
+
+  try {
+    return await pool.query(query);
+  } catch (err) {
+    throw err;
+  }
+};
+
+const getPositionsByTrackId = async (trackId) => {
+  const query = {
+    text: "SELECT * FROM positions WHERE track_id = ($1)",
+    values: [trackId],
+  };
+
+  try {
+    return await pool.query(query);
+  } catch (err) {
+    throw err;
+  }
+};
+
+const deleteTrack = async (trackId) => {
+  const query = {
+    text: "CALL delete_track ($1)",
+    values: [trackId],
+  };
+
+  try {
+    return await pool.query(query);
   } catch (err) {
     throw err;
   }
@@ -36,4 +74,7 @@ const insertPosition = async (lat, lon, heading, trackId) => {
 module.exports = {
   insertTrack,
   insertPosition,
+  getTracks,
+  getPositionsByTrackId,
+  deleteTrack,
 };

@@ -6,23 +6,23 @@
 import { Component, Vue } from 'vue-property-decorator'
 import { namespace } from 'vuex-class'
 
+import { Feature } from 'ol'
 import Map from 'ol/Map'
 import View from 'ol/View'
 import { fromLonLat } from 'ol/proj'
+import { Geometry, LineString, Point } from 'ol/geom'
 import VectorSource from 'ol/source/Vector'
 import OSM from 'ol/source/OSM'
 import TileLayer from 'ol/layer/Tile'
 import VectorLayer from 'ol/layer/Vector'
-import GeoJSON from 'ol/format/GeoJSON'
 import Style from 'ol/style/Style'
 import 'ol/ol.css'
 
 import { Position } from '@/common/position'
 import {
-  getLineAndBoatGeoJson,
-  getBoatGeoJson
-} from '@/components/MapContainer/boatGeoJson'
-import { boatStyle } from '@/components/MapContainer/boatStyles'
+  dynamicLayerStyle,
+  staticLayerStyle
+} from '@/components/MapContainer/vectorLayerStyles'
 
 const positionData = namespace('PositionData')
 
@@ -39,6 +39,9 @@ export default class MapContainer extends Vue {
   @positionData.State
   public isRecording!: boolean
 
+  @positionData.State
+  public selectedPositions!: Position[]
+
   $refs!: {
     mapRoot: HTMLDivElement
   }
@@ -46,12 +49,19 @@ export default class MapContainer extends Vue {
   data() {
     return {
       map: null,
-      vectorLayer: null
+      dynamicVectorLayer: null,
+      staticVectorLayer: null
     }
   }
 
   handleStoreMutation() {
-    let geoJson = null
+    this.updateDynamicLayerSource()
+    this.updateStaticLayerSource()
+  }
+
+  updateDynamicLayerSource(): void {
+    const source = this.$data.dynamicVectorLayer?.getSource()
+    const features = [] as Feature<Geometry>[]
 
     if (this.boatPosition) {
       const boatCoordinate = fromLonLat([
@@ -59,50 +69,85 @@ export default class MapContainer extends Vue {
         this.boatPosition.lat
       ])
 
-      if (this.currentPositions.length > 0 && this.isRecording) {
-        const lineStringCoordinates = this.currentPositions.map(
-          (record: Position) => {
-            return fromLonLat([record.lon, record.lat])
-          }
-        )
-        geoJson = getLineAndBoatGeoJson(lineStringCoordinates, boatCoordinate)
-      } else {
-        geoJson = getBoatGeoJson(boatCoordinate)
-      }
-      this.updateSource(geoJson)
-    }
-  }
+      features.push(
+        new Feature({
+          geometry: new Point(boatCoordinate)
+        })
+      )
 
-  updateSource(geoJson: object): void {
-    const source = this.$data.vectorLayer?.getSource()
-    const features = new GeoJSON().readFeatures(geoJson)
+      const boatStyleTemp = this.$data.dynamicVectorLayer?.getStyle()
+      if (boatStyleTemp instanceof Style) {
+        boatStyleTemp
+          .getImage()
+          .setRotation((Math.PI / 180) * this.boatPosition.heading)
+      }
+    }
+
+    if (this.currentPositions.length > 0 && this.isRecording) {
+      const lineStringCoordinates = this.currentPositions.map(
+        (record: Position) => {
+          return fromLonLat([record.lon, record.lat])
+        }
+      )
+
+      features.push(
+        new Feature({
+          geometry: new LineString(lineStringCoordinates)
+        })
+      )
+    }
 
     source?.clear()
     source?.addFeatures(features)
+  }
 
-    const boatStyleTemp = this.$data.vectorLayer?.getStyle()
-    if (boatStyleTemp instanceof Style) {
-      boatStyleTemp
-        .getImage()
-        .setRotation((Math.PI / 180) * this.boatPosition.heading)
+  updateStaticLayerSource(): void {
+    const source = this.$data.staticVectorLayer?.getSource()
+    const features = [] as Feature<Geometry>[]
+
+    if (this.selectedPositions.length > 0) {
+      const lineStringCoordinates = this.selectedPositions.map(
+        (record: Position) => {
+          return fromLonLat([record.lon, record.lat])
+        }
+      )
+
+      features.push(
+        new Feature({
+          geometry: new LineString(lineStringCoordinates)
+        })
+      )
     }
+
+    source?.clear()
+    source?.addFeatures(features)
   }
 
   initMap() {
-    this.$data.vectorLayer = new VectorLayer({
+    const tileLayer = new TileLayer({
+      source: new OSM()
+    })
+
+    this.$data.dynamicVectorLayer = new VectorLayer({
       source: new VectorSource({
         features: []
       }),
-      style: boatStyle
+      style: dynamicLayerStyle
+    })
+
+    this.$data.staticVectorLayer = new VectorLayer({
+      source: new VectorSource({
+        features: []
+      }),
+      style: staticLayerStyle
     })
 
     this.$data.map = new Map({
       target: this.$refs.mapRoot,
       layers: [
-        new TileLayer({
-          source: new OSM()
-        }),
-        this.$data.vectorLayer
+        tileLayer,
+        this.$data.dynamicVectorLayer,
+        this.$data.staticVectorLayer
       ],
       view: new View({
         zoom: 18,

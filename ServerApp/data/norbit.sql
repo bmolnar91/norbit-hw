@@ -28,7 +28,7 @@ ALTER TABLE ONLY position
     ADD CONSTRAINT pk_position_id PRIMARY KEY (id);
 
 ALTER TABLE ONLY position
-    ADD CONSTRAINT fk_track_id FOREIGN KEY (track_id) REFERENCES track(id);
+    ADD CONSTRAINT fk_track_id FOREIGN KEY (track_id) REFERENCES track(id) ON DELETE CASCADE;
 
 
 DROP PROCEDURE IF EXISTS insert_track(UUID);
@@ -63,3 +63,23 @@ BEGIN
     COMMIT;
 END;$$
 ;
+
+DROP PROCEDURE IF EXISTS delete_track(UUID);
+CREATE OR REPLACE PROCEDURE delete_track(track_id UUID)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM track
+        WHERE id = track_id;
+    
+    COMMIT;
+END;$$
+;
+
+DROP VIEW IF EXISTS tracks;
+CREATE VIEW tracks AS
+    SELECT * FROM track;
+
+DROP VIEW IF EXISTS positions;
+CREATE VIEW positions AS
+    SELECT * FROM position;
