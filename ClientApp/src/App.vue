@@ -62,16 +62,12 @@ export default class App extends Vue {
 
   @Socket('recording status update')
   onRecordingStatusMessage(msg: boolean) {
-    console.log('new status: ' + msg)
-
     this.setRecording(msg)
   }
 
   @Socket('current positions update')
   onRecordedPositionsMessage(msg: PositionMessage[]): void {
     const positions = positionMessagesParser(msg)
-    console.log(positions)
-
     this.setCurrentPositions(positions)
   }
 
@@ -82,7 +78,7 @@ export default class App extends Vue {
     const res = await axios.post(url)
 
     if (res.status >= 200 && res.status <= 299) {
-      console.log('status successfully set to: ' + this.isRecording)
+      console.log('recording status successfully set to: ' + this.isRecording)
     } else {
       throw new Error('A problem occurred')
     }

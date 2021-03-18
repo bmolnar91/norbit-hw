@@ -58,7 +58,7 @@ export default class TracksModal extends Vue {
   async deleteTrackTest(e: MouseEvent, trackId: string) {
     e.stopPropagation()
 
-    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/track/${trackId}`
+    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/tracks/${trackId}`
     const res = await axios.delete(url)
 
     this.$data.tracks = res.data.tracks

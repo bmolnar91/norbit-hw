@@ -41,7 +41,7 @@ export default class TrackDetailsModal extends Vue {
   }
 
   async getPositionsByTrackId(trackId: string): Promise<void> {
-    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/track/${trackId}`
+    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/tracks/${trackId}`
     const res = await axios.get(url)
 
     return res.data.positions
@@ -61,8 +61,6 @@ export default class TrackDetailsModal extends Vue {
           }) as Position
         }
       )
-
-      console.log(positionObjects)
 
       this.setSelectedPositions(positionObjects)
     })
