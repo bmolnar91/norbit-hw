@@ -12,6 +12,7 @@ const io = socketio(server, {
     methods: ["GET", "POST"],
   },
 });
+const ioClient = require("socket.io-client");
 const { v4: uuidv4 } = require("uuid");
 const db = require("./queries");
 
@@ -19,11 +20,15 @@ const db = require("./queries");
 const state = {
   allClients: [],
   activeTrackId: null,
-  currentPositions: [],
   isRecording: false,
+  currentPositions: [],
 };
 
 app.use(cors());
+
+const socketClient = ioClient(
+  `${process.env.SERVER_DOMAIN}:${process.env.SERVER_PORT}`
+);
 
 io.on("connection", (socket) => {
   console.log("New WebSocket connection...");
@@ -38,20 +43,22 @@ io.on("connection", (socket) => {
     const i = state.allClients.indexOf(socket);
     state.allClients.splice(i, 1);
 
-    // Length of 1 until the mock Python client gets replaced by a server
-    if (state.allClients.length <= 1 && state.isRecording) {
-      console.log("All clients disconnected, stopping the recording");
+    console.log(state.allClients.length);
+
+    if (!state.allClients.length && state.isRecording) {
+      console.log("All clients disconnected, recording stopped.");
       haltRecording();
     }
   });
+});
 
-  socket.on("message", (message) => {
-    io.emit("position message", JSON.parse(message));
+socketClient.on("message", (message) => {
+  io.emit("position message", JSON.parse(message));
+  console.log(message);
 
-    if (state.isRecording) {
-      recordMessage(message);
-    }
-  });
+  if (state.isRecording) {
+    recordMessage(message);
+  }
 });
 
 const recordMessage = (message) => {
