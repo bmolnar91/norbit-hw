@@ -20,7 +20,8 @@ import 'ol/ol.css'
 import { Position } from '@/common/position'
 import {
   getLineAndBoatGeoJson,
-  getBoatGeoJson
+  getBoatGeoJson,
+  baseGeoJson
 } from '@/components/MapContainer/boatGeoJson'
 import { boatStyle } from '@/components/MapContainer/boatStyles'
 
@@ -49,12 +50,14 @@ export default class MapContainer extends Vue {
   data() {
     return {
       map: null,
-      vectorLayer: null
+      vectorLayer: null,
+      theOtherVectorLayer: null
     }
   }
 
   handleStoreMutation() {
     let geoJson = null
+    let theOtherGeoJson = null
 
     if (this.boatPosition) {
       const boatCoordinate = fromLonLat([
@@ -82,14 +85,21 @@ export default class MapContainer extends Vue {
             return fromLonLat([record.lon, record.lat])
           }
         )
-        geoJson = getLineAndBoatGeoJson(lineStringCoordinates, boatCoordinate)
-      } else {
-        geoJson = getBoatGeoJson(boatCoordinate)
+        theOtherGeoJson = getLineAndBoatGeoJson(
+          lineStringCoordinates,
+          boatCoordinate
+        )
+        this.updateTheOtherSource(theOtherGeoJson)
       }
 
       this.updateSource(geoJson)
     }
   }
+
+  // handleStoreMutation() {
+  //   const geoJson = baseGeoJson()
+  //   this.updateSource(geoJson)
+  // }
 
   updateSource(geoJson: object): void {
     const source = this.$data.vectorLayer?.getSource()
@@ -106,8 +116,30 @@ export default class MapContainer extends Vue {
     }
   }
 
+  updateTheOtherSource(geoJson: object): void {
+    const source = this.$data.theOtherVectorLayer?.getSource()
+    const features = new GeoJSON().readFeatures(geoJson)
+
+    source?.clear()
+    source?.addFeatures(features)
+
+    const boatStyleTemp = this.$data.theOtherVectorLayer?.getStyle()
+    if (boatStyleTemp instanceof Style) {
+      boatStyleTemp
+        .getImage()
+        .setRotation((Math.PI / 180) * this.boatPosition.heading)
+    }
+  }
+
   initMap() {
     this.$data.vectorLayer = new VectorLayer({
+      source: new VectorSource({
+        features: []
+      }),
+      style: boatStyle
+    })
+
+    this.$data.theOtherVectorLayer = new VectorLayer({
       source: new VectorSource({
         features: []
       }),
@@ -120,7 +152,8 @@ export default class MapContainer extends Vue {
         new TileLayer({
           source: new OSM()
         }),
-        this.$data.vectorLayer
+        this.$data.vectorLayer,
+        this.$data.theOtherVectorLayer
       ],
       view: new View({
         zoom: 18,
