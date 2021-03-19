@@ -15,8 +15,20 @@
           {{ isRecording ? 'mdi-stop' : 'mdi-record' }}
         </v-icon>
       </v-btn>
-      <ModalVuetify />
-      <!--        <ModalContainer />-->
+      <v-btn
+        icon
+        tile
+        v-if="!this.$data.isModalOpen"
+        elevation="2"
+        style="position:absolute;top:5rem;right:5rem;"
+        @click="handleModalButtonClick"
+      >
+        <v-icon>mdi-view-module</v-icon>
+      </v-btn>
+      <ModalVuetify
+        @closeModal="closeModal"
+        v-if="isRecording !== null && this.$data.isModalOpen"
+      />
     </v-main>
   </v-app>
 </template>
@@ -36,7 +48,6 @@ import {
 } from '@/util/jsonParsers'
 
 import MapContainer from '@/components/MapContainer/MapContainer.vue'
-import ModalContainer from '@/components/ModalContainer/ModalContainer.vue'
 import ModalVuetify from '@/components/ModalVuetify/ModalVuetify.vue'
 
 const positionData = namespace('PositionData')
@@ -46,7 +57,6 @@ const positionData = namespace('PositionData')
   components: {
     MapContainer,
     ModalVuetify
-    // ModalContainer
   }
 })
 export default class App extends Vue {
@@ -64,6 +74,16 @@ export default class App extends Vue {
 
   @positionData.Action
   public setRecording!: (status: boolean) => void
+
+  data() {
+    return {
+      isModalOpen: false
+    }
+  }
+
+  closeModal() {
+    this.$data.isModalOpen = false
+  }
 
   @Socket('position message')
   onPositionMessage(msg: object) {
@@ -90,13 +110,21 @@ export default class App extends Vue {
     let url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/record`
     url += this.isRecording ? '/stop' : '/start'
 
-    const res = await axios.post(url)
-
-    if (res.status >= 200 && res.status <= 299) {
-      console.log('recording status successfully set to: ' + this.isRecording)
-    } else {
-      throw new Error('A problem occurred')
+    try {
+      await axios.post(url)
+    } catch (err) {
+      console.log(err)
     }
+
+    // if (res.status >= 200 && res.status <= 299) {
+    //   console.log('recording status successfully set to: ' + this.isRecording)
+    // } else {
+    //   throw new Error('A problem occurred')
+    // }
+  }
+
+  handleModalButtonClick(): void {
+    this.$data.isModalOpen = true
   }
 }
 </script>

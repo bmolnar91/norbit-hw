@@ -8,7 +8,7 @@
     <v-toolbar color="rgb(0,60,136,0.5)" dark>
       <v-app-bar-nav-icon></v-app-bar-nav-icon>
 
-      <v-toolbar-title>My records</v-toolbar-title>
+      <v-toolbar-title>Recorded tracks</v-toolbar-title>
 
       <v-spacer></v-spacer>
 
@@ -16,14 +16,14 @@
         <v-icon>mdi-magnify</v-icon>
       </v-btn>
 
-      <v-btn icon>
-        <v-icon>mdi-view-module</v-icon>
+      <v-btn icon @click="$emit('closeModal')">
+        <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-toolbar>
 
-    <v-list subheader two-line>
+    <v-list dense>
       <v-subheader inset>Tracks</v-subheader>
-      <v-list-item-group v-model="selectedItem" color="rgb(0,60,136,0.5)">
+      <v-list-item-group v-model="selectedListItem" color="rgb(0,60,136,0.5)">
         <v-list-item
           v-for="track in this.$data.tracks"
           :key="track.id"
@@ -42,7 +42,7 @@
           </v-list-item-content>
 
           <v-list-item-action>
-            <v-btn icon @click="deleteTrackById($event, track.id)">
+            <v-btn icon @click="deleteButtonClickHandler($event, track.id)">
               <v-icon color="grey lighten-1">mdi-delete-alert</v-icon>
             </v-btn>
           </v-list-item-action>
@@ -55,9 +55,10 @@
 <script lang="ts">
 import Component from 'vue-class-component'
 import Vue from 'vue'
+import { Watch } from 'vue-property-decorator'
+import { namespace } from 'vuex-class'
 import axios from 'axios'
 import { format } from 'date-fns'
-import { namespace } from 'vuex-class'
 import { Position } from '@/common/position'
 
 const positionData = namespace('PositionData')
@@ -66,27 +67,31 @@ const positionData = namespace('PositionData')
   name: 'ModalVuetify'
 })
 export default class ModalVuetify extends Vue {
+  @positionData.State
+  public isRecording!: boolean
+
   @positionData.Action
   public setSelectedPositions!: (positions: Position[]) => void
 
   data() {
     return {
-      isOpen: false,
-      isLoading: true,
       tracks: [],
       selectedTrackId: null,
-      selectedItem: null
+      selectedListItem: null
     }
   }
 
-  async getTracks(): Promise<void> {
-    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/tracks`
-    const res = await axios.get(url)
-
-    this.$data.tracks = this.formatTracks(res.data.tracks)
+  listItemClickHandler(trackId: string): void {
+    if (trackId === this.$data.selectedTrackId) {
+      this.$data.selectedTrackId = null
+      this.setSelectedPositions([])
+    } else {
+      this.$data.selectedTrackId = trackId
+      this.showSelectedPositions(trackId)
+    }
   }
 
-  async deleteTrackById(e: MouseEvent, trackId: string): Promise<void> {
+  deleteButtonClickHandler(e: MouseEvent, trackId: string) {
     e.stopPropagation()
 
     if (trackId === this.$data.selectedTrackId) {
@@ -94,10 +99,42 @@ export default class ModalVuetify extends Vue {
       this.setSelectedPositions([])
     }
 
+    this.deleteTrackById(trackId)
+  }
+
+  getFinishedTracks(tracks: []) {
+    if (this.isRecording) {
+      tracks.shift()
+    }
+    return tracks
+  }
+
+  getFormattedTracks(tracks: []) {
+    return tracks.map(
+      (track: { id: string; start_time: string; end_time: string }) => {
+        const dateTime = new Date(track.end_time)
+        return new Object({
+          id: track.id,
+          endTime: `${format(dateTime, 'yyyy-MM-dd-HH_mm_ss')}`
+        })
+      }
+    )
+  }
+
+  async fetchTracks(): Promise<void> {
+    const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/tracks`
+    const res = await axios.get(url)
+    const finishedTracks = this.getFinishedTracks(res.data.tracks)
+
+    this.$data.tracks = this.getFormattedTracks(finishedTracks)
+  }
+
+  async deleteTrackById(trackId: string): Promise<void> {
     const url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/tracks/${trackId}`
     const res = await axios.delete(url)
+    const finishedTracks = this.getFinishedTracks(res.data.tracks)
 
-    this.$data.tracks = this.formatTracks(res.data.tracks)
+    this.$data.tracks = this.getFormattedTracks(finishedTracks)
   }
 
   async getPositionsByTrackId(trackId: string): Promise<void> {
@@ -110,7 +147,6 @@ export default class ModalVuetify extends Vue {
   showSelectedPositions(trackId: string): void {
     this.getPositionsByTrackId(trackId).then(res => {
       this.$data.positions = res
-      this.$data.isLoading = false
 
       const positionObjects: Position[] = this.$data.positions.map(
         (position: any) => {
@@ -126,33 +162,15 @@ export default class ModalVuetify extends Vue {
     })
   }
 
-  listItemClickHandler(trackId: string): void {
-    if (trackId === this.$data.selectedTrackId) {
-      this.$data.selectedTrackId = null
-      this.setSelectedPositions([])
-    } else {
-      this.$data.selectedTrackId = trackId
-      this.showSelectedPositions(trackId)
+  @Watch('isRecording')
+  onRecordingChanged() {
+    if (!this.isRecording) {
+      this.fetchTracks()
     }
   }
 
-  formatTracks(tracks: []) {
-    return tracks.map(
-      (track: { id: string; start_time: string; end_time: string }) => {
-        const dateTime = new Date(track.end_time)
-        return new Object({
-          id: track.id,
-          endTime: `${format(dateTime, 'yyyy-MM-dd-HH_mm_ss')}`
-        })
-      }
-    )
-  }
-
   mounted() {
-    this.getTracks().then(res => {
-      //this.$data.tracks = res
-      this.$data.isLoading = false
-    })
+    this.fetchTracks()
   }
 }
 </script>
