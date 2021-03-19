@@ -1,11 +1,24 @@
 <template>
-  <div id="frame">
-    <MapContainer />
-    <button id="recording-button" @click="handleRecordingButtonClick">
-      {{ isRecording ? 'Stop recording' : 'Start recording' }}
-    </button>
-    <ModalContainer />
-  </div>
+  <v-app>
+    <v-main>
+      <MapContainer />
+      <v-btn
+        icon
+        color="rgb(220,20,60)"
+        x-large
+        outlined
+        elevation="2"
+        style="position:absolute;bottom:5rem;right:5rem;"
+        @click="handleRecordingButtonClick"
+      >
+        <v-icon>
+          {{ isRecording ? 'mdi-stop' : 'mdi-record' }}
+        </v-icon>
+      </v-btn>
+      <ModalVuetify />
+      <!--        <ModalContainer />-->
+    </v-main>
+  </v-app>
 </template>
 
 <script lang="ts">
@@ -24,6 +37,7 @@ import {
 
 import MapContainer from '@/components/MapContainer/MapContainer.vue'
 import ModalContainer from '@/components/ModalContainer/ModalContainer.vue'
+import ModalVuetify from '@/components/ModalVuetify/ModalVuetify.vue'
 
 const positionData = namespace('PositionData')
 
@@ -31,7 +45,8 @@ const positionData = namespace('PositionData')
   name: 'App',
   components: {
     MapContainer,
-    ModalContainer
+    ModalVuetify
+    // ModalContainer
   }
 })
 export default class App extends Vue {
@@ -94,13 +109,5 @@ export default class App extends Vue {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-}
-#frame {
-  position: relative;
-}
-#recording-button {
-  position: absolute;
-  right: 5rem;
-  bottom: 5rem;
 }
 </style>
