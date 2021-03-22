@@ -42,7 +42,7 @@
           </v-list-item-content>
 
           <v-list-item-action>
-            <v-btn icon @click="deleteButtonClickHandler($event, track.id)">
+            <v-btn icon @click.stop="deleteButtonClickHandler(track.id)">
               <v-icon color="grey lighten-1">mdi-delete-alert</v-icon>
             </v-btn>
           </v-list-item-action>
@@ -91,9 +91,7 @@ export default class ModalVuetify extends Vue {
     }
   }
 
-  deleteButtonClickHandler(e: MouseEvent, trackId: string) {
-    e.stopPropagation()
-
+  deleteButtonClickHandler(trackId: string) {
     if (trackId === this.$data.selectedTrackId) {
       this.$data.selectedTrackId = null
       this.setSelectedPositions([])

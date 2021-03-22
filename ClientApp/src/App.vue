@@ -3,6 +3,7 @@
     <v-main>
       <MapContainer />
       <v-btn
+        :disabled="this.$data.isRecordingButtonDisabled"
         icon
         color="rgb(220,20,60)"
         x-large
@@ -34,7 +35,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue, Watch } from 'vue-property-decorator'
 import { namespace } from 'vuex-class'
 import { Socket } from 'vue-socket.io-extended'
 
@@ -77,7 +78,8 @@ export default class App extends Vue {
 
   data() {
     return {
-      isModalOpen: false
+      isModalOpen: false,
+      isRecordingButtonDisabled: true
     }
   }
 
@@ -125,6 +127,14 @@ export default class App extends Vue {
 
   handleModalButtonClick(): void {
     this.$data.isModalOpen = true
+  }
+
+  @Watch('isRecording')
+  onRecordingChanged() {
+    this.$data.isRecordingButtonDisabled = true
+    new Promise(resolve => setTimeout(resolve, 500)).then(
+      () => (this.$data.isRecordingButtonDisabled = false)
+    )
   }
 }
 </script>
