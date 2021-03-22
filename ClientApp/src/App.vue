@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <MapContainer />
+      <map-container />
       <v-btn
         :disabled="this.$data.isRecordingButtonDisabled"
         icon
@@ -26,7 +26,7 @@
       >
         <v-icon>mdi-view-module</v-icon>
       </v-btn>
-      <ModalVuetify
+      <modal
         @closeModal="closeModal"
         v-if="isRecording !== null && this.$data.isModalOpen"
       />
@@ -49,15 +49,15 @@ import {
 } from '@/util/jsonParsers'
 
 import MapContainer from '@/components/MapContainer/MapContainer.vue'
-import ModalVuetify from '@/components/ModalVuetify/ModalVuetify.vue'
+import Modal from '@/components/Modal/Modal.vue'
 
 const positionData = namespace('PositionData')
 
 @Component({
-  name: 'App',
+  name: 'app',
   components: {
     MapContainer,
-    ModalVuetify
+    Modal
   }
 })
 export default class App extends Vue {

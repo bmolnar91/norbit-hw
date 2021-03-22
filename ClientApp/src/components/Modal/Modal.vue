@@ -64,7 +64,7 @@ import { Position } from '@/common/position'
 const positionData = namespace('PositionData')
 
 @Component({
-  name: 'ModalVuetify'
+  name: 'modal-vuetify'
 })
 export default class ModalVuetify extends Vue {
   @positionData.State
