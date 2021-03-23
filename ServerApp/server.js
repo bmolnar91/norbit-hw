@@ -9,7 +9,7 @@ const server = http.createServer(app);
 const io = socketio(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "DELETE"],
   },
 });
 const ioClient = require("socket.io-client");
@@ -31,7 +31,7 @@ const socketClient = ioClient(
 );
 
 io.on("connection", (socket) => {
-  console.log("New WebSocket connection...");
+  console.log("New client connected...");
   state.allClients.push(socket);
 
   socket.emit("recording status update", state.isRecording);
@@ -54,7 +54,6 @@ io.on("connection", (socket) => {
 
 socketClient.on("message", (message) => {
   io.emit("position message", JSON.parse(message));
-  console.log(message);
 
   if (state.isRecording) {
     recordMessage(message);
@@ -173,6 +172,6 @@ app.delete("/tracks/:id", (req, res) => {
     });
 });
 
-const PORT = 5678 || process.env.PORT;
-
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(process.env.PORT, () =>
+  console.log(`Server running on port ${process.env.PORT}`)
+);

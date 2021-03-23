@@ -27,7 +27,7 @@ import {
 const positionData = namespace('PositionData')
 
 @Component({
-  name: 'MapContainer'
+  name: 'map-container'
 })
 export default class MapContainer extends Vue {
   @positionData.State

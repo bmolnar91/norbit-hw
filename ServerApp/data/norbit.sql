@@ -78,8 +78,10 @@ END;$$
 
 DROP VIEW IF EXISTS tracks;
 CREATE VIEW tracks AS
-    SELECT * FROM track;
+    SELECT * FROM track
+    ORDER BY end_time DESC;
 
 DROP VIEW IF EXISTS positions;
 CREATE VIEW positions AS
-    SELECT * FROM position;
+    SELECT * FROM position
+    ORDER BY id;

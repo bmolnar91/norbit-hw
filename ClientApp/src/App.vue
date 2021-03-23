@@ -1,15 +1,41 @@
 <template>
-  <div id="frame">
-    <MapContainer />
-    <button id="recording-button" @click="handleRecordingButtonClick">
-      {{ isRecording ? 'Stop recording' : 'Start recording' }}
-    </button>
-    <ModalContainer />
-  </div>
+  <v-app>
+    <v-main>
+      <map-container />
+      <v-btn
+        :disabled="this.$data.isRecordingButtonDisabled"
+        icon
+        color="rgb(220,20,60)"
+        x-large
+        outlined
+        elevation="2"
+        style="position:absolute;bottom:5rem;right:5rem;"
+        @click="handleRecordingButtonClick"
+      >
+        <v-icon>
+          {{ isRecording ? 'mdi-stop' : 'mdi-record' }}
+        </v-icon>
+      </v-btn>
+      <v-btn
+        icon
+        tile
+        v-if="!this.$data.isModalOpen"
+        elevation="2"
+        style="position:absolute;top:5rem;right:5rem;"
+        @click="handleModalButtonClick"
+      >
+        <v-icon>mdi-view-module</v-icon>
+      </v-btn>
+      <modal
+        @closeModal="closeModal"
+        v-if="isRecording !== null && this.$data.isModalOpen"
+      />
+    </v-main>
+  </v-app>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue, Watch } from 'vue-property-decorator'
 import { namespace } from 'vuex-class'
 import { Socket } from 'vue-socket.io-extended'
 
@@ -23,15 +49,15 @@ import {
 } from '@/util/jsonParsers'
 
 import MapContainer from '@/components/MapContainer/MapContainer.vue'
-import ModalContainer from '@/components/ModalContainer/ModalContainer.vue'
+import Modal from '@/components/Modal/Modal.vue'
 
 const positionData = namespace('PositionData')
 
 @Component({
-  name: 'App',
+  name: 'app',
   components: {
     MapContainer,
-    ModalContainer
+    Modal
   }
 })
 export default class App extends Vue {
@@ -49,6 +75,17 @@ export default class App extends Vue {
 
   @positionData.Action
   public setRecording!: (status: boolean) => void
+
+  data() {
+    return {
+      isModalOpen: false,
+      isRecordingButtonDisabled: true
+    }
+  }
+
+  closeModal() {
+    this.$data.isModalOpen = false
+  }
 
   @Socket('position message')
   onPositionMessage(msg: object) {
@@ -75,13 +112,29 @@ export default class App extends Vue {
     let url = `http://${process.env.VUE_APP_SERVER_HOST}:${process.env.VUE_APP_SERVER_PORT}/record`
     url += this.isRecording ? '/stop' : '/start'
 
-    const res = await axios.post(url)
-
-    if (res.status >= 200 && res.status <= 299) {
-      console.log('recording status successfully set to: ' + this.isRecording)
-    } else {
-      throw new Error('A problem occurred')
+    try {
+      await axios.post(url)
+    } catch (err) {
+      console.log(err)
     }
+
+    // if (res.status >= 200 && res.status <= 299) {
+    //   console.log('recording status successfully set to: ' + this.isRecording)
+    // } else {
+    //   throw new Error('A problem occurred')
+    // }
+  }
+
+  handleModalButtonClick(): void {
+    this.$data.isModalOpen = true
+  }
+
+  @Watch('isRecording')
+  onRecordingChanged() {
+    this.$data.isRecordingButtonDisabled = true
+    new Promise(resolve => setTimeout(resolve, 500)).then(
+      () => (this.$data.isRecordingButtonDisabled = false)
+    )
   }
 }
 </script>
@@ -94,13 +147,5 @@ export default class App extends Vue {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-}
-#frame {
-  position: relative;
-}
-#recording-button {
-  position: absolute;
-  right: 5rem;
-  bottom: 5rem;
 }
 </style>
